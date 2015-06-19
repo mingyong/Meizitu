@@ -24,5 +24,31 @@
         android:background="@color/tishi_back"
         android:padding="10dp"
         />
+<!--
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="author"
+        android:textSize="18sp"
+        android:id="@+id/textView_author"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/tishi"
+        android:background="@color/tishi_back"
+        android:padding="10dp"
+        />
+-->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="date"
+        android:textSize="18sp"
+        android:id="@+id/textView_date"
+        android:textColor="@color/tishi"
+        android:background="@color/tishi_back"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:padding="10dp"
+         />
 
 </RelativeLayout>

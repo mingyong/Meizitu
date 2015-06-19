@@ -57,6 +57,7 @@ public class LikesDataHelper extends BaseDataHelper {
     public void bulkInsert(List<Feed> feeds) {
         ArrayList<ContentValues> contentValues = new ArrayList<ContentValues>();
         for (Feed feed : feeds) {
+//            feed.setId(feed.getDate().replaceAll("\\W+", ""));
             ContentValues values = getContentValues(feed);
             contentValues.add(values);
         }

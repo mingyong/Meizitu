@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 
+import com.google.gson.Gson;
 import com.nhaarman.listviewanimations.swinginadapters.AnimationAdapter;
 
 
@@ -80,6 +81,9 @@ public class LikesFragment extends BaseFragment implements  LoaderManager.Loader
                 intent.putExtra(ImageViewActivity.IMAGE_NAME, feed.getTitle());
                 intent.putStringArrayListExtra(ImageViewActivity.IMAGE_URL, feed.getImgs());
                 intent.putExtra(ImageViewActivity.IMAGE_ID, feed.getId().toString());
+                intent.putExtra(ImageViewActivity.IMAGE_AUTHOR, new Gson().toJson(feed.getAuthor()));
+                intent.putExtra(ImageViewActivity.IMAGE_DATE, feed.getDate());
+                intent.putExtra(ImageViewActivity.IMAGE_ORIGINURL, feed.getUrl());
                 ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
             }
         });

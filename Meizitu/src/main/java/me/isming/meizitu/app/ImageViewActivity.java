@@ -1,6 +1,8 @@
 package me.isming.meizitu.app;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
@@ -13,6 +15,9 @@ import android.view.MenuItem;
 import android.view.View;
 
 import android.widget.TextView;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
@@ -34,7 +39,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.UUID;
+import java.util.Map;
 
 
 /**
@@ -44,6 +49,9 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
     public static final String IMAGE_URL = "image_url";
     public static final String IMAGE_NAME = "image_name";
     public static final String IMAGE_ID = "image_id";
+    public static final String IMAGE_AUTHOR = "image_author";
+    public static final String IMAGE_DATE = "image_date";
+    public static final String IMAGE_ORIGINURL = "image_originurl";
 
     //PhotoView photoView;
 
@@ -56,8 +64,13 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
     private ArrayList<View> views;
     private ViewPager pager;
     private String mTitle;
+    private String mDate;
+    private String mOriginURL;
+    private Map<String, String> mAuthor;
     private TextView tv;
-    private UUID mId;
+    private TextView dateView;
+//    private TextView authorView;
+    private String mId;
     private boolean mIsFavd;
     private LikesDataHelper mLikeHelper;
 
@@ -72,7 +85,11 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
         //Type t = new TypeToken<String>(){}.getType();
         urls = getIntent().getStringArrayListExtra(IMAGE_URL);
         mTitle = getIntent().getStringExtra(IMAGE_NAME);
-        mId = UUID.fromString(getIntent().getStringExtra(IMAGE_ID));
+        mId = getIntent().getStringExtra(IMAGE_ID);
+        mAuthor = new Gson().fromJson(getIntent().getStringExtra(IMAGE_AUTHOR), new TypeToken<Map<String, String>>() {
+        }.getType());
+        mDate = getIntent().getStringExtra(IMAGE_DATE);
+        mOriginURL = getIntent().getStringExtra(IMAGE_ORIGINURL);
 //        if (mId <= 0) {
 //            finish();
 //            return;
@@ -84,6 +101,24 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
         views = new ArrayList<View>();
         tv = (TextView) findViewById(R.id.textView);
         tv.setText(1+"/"+urls.size());
+
+        dateView = (TextView) findViewById(R.id.textView_date);
+        dateView.setText(mDate);
+
+        dateView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(mOriginURL));
+                startActivity(i);
+            }
+        });
+
+//        authorView = (TextView) findViewById(R.id.textView_author);
+//        for ( String key : mAuthor.keySet() ) {
+//            authorView.setText(key);
+//        }
+
         pager = (ViewPager) findViewById(R.id.viewpage);
         photoViews = new ArrayList<PhotoView>();
         mAttachers = new ArrayList<PhotoViewAttacher>();
@@ -237,6 +272,9 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
             feed.setImgs(urls);
             feed.setTitle(mTitle);
             feed.setId(mId);
+            feed.setDate(mDate);
+            feed.setUrl(mOriginURL);
+            feed.setAuthor(mAuthor);
 
             mLikeHelper.insert(feed);
         }

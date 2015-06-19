@@ -35,6 +35,8 @@ import me.isming.meizitu.view.PageListView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -53,6 +55,7 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
     private FeedsAdapter mAdapter;
     private int mMaxId = 0;
     private int mSinceId = 0;
+    private String mLatest = null;
     private String mString = "http://23.252.109.110:5000/results/dump/haixiuzu2.txt";
 
     public static FeedsFragment newInstance(int sectionNumber) {
@@ -79,12 +82,14 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
         AnimationAdapter animationAdapter = new CardsAnimationAdapter(mAdapter);
         animationAdapter.setAbsListView(mListView);
         mListView.setAdapter(animationAdapter);
-        mListView.setLoadNextListener(new PageListView.OnLoadNextListener() {
-            @Override
-            public void onLoadNext() {
-                loadNextData();
-            }
-        });
+//        mListView.setLoadNextListener(new PageListView.OnLoadNextListener() {
+//            @Override
+//            public void onLoadNext() {
+//                loadNextData();
+//            }
+//        });
+
+        mListView.setLoadNextListener(null);
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -104,6 +109,9 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
                 intent.putExtra(ImageViewActivity.IMAGE_NAME, feed.getTitle());
                 intent.putStringArrayListExtra(ImageViewActivity.IMAGE_URL, feed.getImgs());
                 intent.putExtra(ImageViewActivity.IMAGE_ID, feed.getId().toString());
+                intent.putExtra(ImageViewActivity.IMAGE_AUTHOR, new Gson().toJson(feed.getAuthor()));
+                intent.putExtra(ImageViewActivity.IMAGE_DATE, feed.getDate());
+                intent.putExtra(ImageViewActivity.IMAGE_ORIGINURL, feed.getUrl());
                 ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
             }
         });
@@ -164,7 +172,23 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
                     protected Object doInBackground(Object... params) {
                         List<Feed> feeds = Arrays.asList(response);
                         if(feeds != null && feeds.size()>0) {
-                            mDataHelper.bulkInsert(feeds);
+                            Collections.sort(feeds);
+                            for(Feed feed : feeds) {
+                                CLog.d("after sort " + feed.getDate());
+                            }
+                            if (mLatest == null) {
+                                mDataHelper.bulkInsert(feeds);
+                            } else {
+                                CLog.d("current latest date " + mLatest);
+                                List<Feed> feedFilter = new ArrayList<Feed>();
+                                for(Feed feed : feeds) {
+                                    if(feed.getDate().compareTo(mLatest) > 0) feedFilter.add(feed);
+                                }
+                                if(feedFilter.size() > 0)
+                                    mDataHelper.bulkInsert(feedFilter);
+                            }
+                            mLatest = feeds.get(0).getDate();
+
 //                            int num1 = feeds.get(0).getId();
 //                            int num2 = feeds.get(feeds.size()-1).getId();
 //                            if(num1>mMaxId) {
@@ -229,6 +253,9 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
         if (data != null && data.getCount() == 0) {
             refreshData();
         } else {
+            if(mLatest == null)
+                mLatest = mAdapter.getItem(0).getDate();
+            CLog.d("onLoadFinished " + mLatest);
 //            int num1 = mAdapter.getItem(mAdapter.getCount() -1 ).getId();
 //            int num2 = mAdapter.getItem(0).getId();
 //            if(num1 > num2) {

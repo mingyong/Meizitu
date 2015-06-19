@@ -8,13 +8,12 @@ import me.isming.meizitu.dao.FeedsDataHelper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 /**
  * Created by sam on 14-4-22.
  */
-public class Feed extends BaseModel {
-    private UUID id;
+public class Feed extends BaseModel implements Comparable<Feed> {
+    private String id;
     private Map<String, String> author;
     private String date;
     private ArrayList<String> imgs;
@@ -46,14 +45,14 @@ public class Feed extends BaseModel {
     }
 
     public Feed() {
-        id = UUID.randomUUID();
+//        id = UUID.randomUUID();
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -87,7 +86,7 @@ public class Feed extends BaseModel {
 
     public static Feed fromCursor(Cursor cursor) {
         Feed feed = new Feed();
-        feed.setId(UUID.fromString(cursor.getString(cursor.getColumnIndex(FeedsDataHelper.FeedsDBInfo.ID))));
+        feed.setId(cursor.getString(cursor.getColumnIndex(FeedsDataHelper.FeedsDBInfo.ID)));
         feed.setTitle(cursor.getString(cursor.getColumnIndex(FeedsDataHelper.FeedsDBInfo.TITLE)));
         feed.setAuthor((Map<String, String>) new Gson().fromJson(
                 cursor.getString(cursor.getColumnIndex(FeedsDataHelper.FeedsDBInfo.AUTHOR)),
@@ -107,6 +106,12 @@ public class Feed extends BaseModel {
 //        public String msg;
         public ArrayList<Feed> data;
 
+    }
+
+    @Override
+    public int compareTo(Feed feed) {
+        //write code here for compare name
+        return feed.getDate().compareTo(this.date);
     }
 
 //    public static class Item {
