@@ -26,6 +26,8 @@ public class AppMainActivity extends BaseActivity
 
     private BaseFragment mContentFragment;
 
+    private MenuItem mMenu;
+
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
@@ -60,12 +62,17 @@ public class AppMainActivity extends BaseActivity
 
         if (position == 1) {
             mContentFragment = LikesFragment.newInstance(position + 1);
+//            mMenu.setVisible(false);
         }
 
         fragmentManager.beginTransaction()
                 .replace(R.id.container, mContentFragment)
                 .commit();
     }
+
+//    public void disableFreshMenu() {
+//        mMenu.setVisible(false);
+//    }
 
     public void onSectionAttached(int number) {
         switch (number) {
@@ -88,11 +95,17 @@ public class AppMainActivity extends BaseActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+//        mMenu = menu;
         if (!mNavigationDrawerFragment.isDrawerOpen()) {
             // Only show items in the action bar relevant to this screen
             // if the drawer is not showing. Otherwise, let the drawer
             // decide what to show in the action bar.
             getMenuInflater().inflate(R.menu.main, menu);
+            mMenu = menu.findItem(R.id.action_refresh);
+            if (mContentFragment != null && mContentFragment instanceof LikesFragment) {
+                mMenu.setVisible(false);
+            }
+//
             restoreActionBar();
             return true;
         }

@@ -137,5 +137,6 @@ public class LikesFragment extends BaseFragment implements  LoaderManager.Loader
         super.onAttach(activity);
         ((AppMainActivity) activity).onSectionAttached(
                 getArguments().getInt(ARG_SECTION_NUMBER));
+//        ((AppMainActivity) activity).disableFreshMenu();
     }
 }

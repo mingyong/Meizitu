@@ -17,9 +17,10 @@ import java.util.List;
 
 
 public class FeedsDataHelper extends BaseDataHelper {
-
-    public FeedsDataHelper(Context context) {
+    private static int mSectionNumber;
+    public FeedsDataHelper(Context context, int sectionNumber) {
         super(context);
+        mSectionNumber = sectionNumber;
     }
 
     @Override
@@ -81,7 +82,7 @@ public class FeedsDataHelper extends BaseDataHelper {
         private FeedsDBInfo() {
         }
 
-        public static final String TABLE_NAME = "feeds";
+        public static final String TABLE_NAME = "feeds" + mSectionNumber;
 
         public static final String ID = "id";
         public static final String AUTHOR = "author";

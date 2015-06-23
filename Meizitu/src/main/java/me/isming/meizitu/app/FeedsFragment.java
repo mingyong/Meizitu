@@ -23,6 +23,7 @@ import com.nhaarman.listviewanimations.swinginadapters.AnimationAdapter;
 import me.isming.meizitu.App;
 import me.isming.meizitu.adapter.CardsAnimationAdapter;
 import me.isming.meizitu.adapter.FeedsAdapter;
+import me.isming.meizitu.dao.DataProvider;
 import me.isming.meizitu.dao.FeedsDataHelper;
 import me.isming.meizitu.data.GsonRequest;
 import me.isming.meizitu.model.Feed;
@@ -55,10 +56,12 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
     private FeedsAdapter mAdapter;
     private int mMaxId = 0;
     private int mSinceId = 0;
+    private static int mSectionNumber = 0;
     private String mLatest = null;
     private String mString = "http://23.252.109.110:5000/results/dump/haixiuzu2.txt";
 
     public static FeedsFragment newInstance(int sectionNumber) {
+        mSectionNumber = sectionNumber;
         FeedsFragment fragment = new FeedsFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_SECTION_NUMBER, sectionNumber);
@@ -74,7 +77,8 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
         mSwipeLayout = (SwipeRefreshLayout) contentView.findViewById(R.id.swipe_container);
 
         mSwipeLayout.setSize(SwipeRefreshLayout.LARGE);
-        mDataHelper = new FeedsDataHelper(App.getContext());
+        DataProvider.reInitArgs(mSectionNumber);
+        mDataHelper = new FeedsDataHelper(App.getContext(), mSectionNumber);
         getLoaderManager().initLoader(0, null, this);
         mAdapter = new FeedsAdapter(getActivity(), mListView);
         View header = new View(getActivity());
@@ -280,4 +284,9 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
         ((AppMainActivity) activity).onSectionAttached(
                 getArguments().getInt(ARG_SECTION_NUMBER));
     }
+
+//    private void initDBArgs(int sectionNumber) {
+//        DataProvider.PATH_FEEDS += Integer.toString(sectionNumber);
+////        DataProvider.FEEDS_CONTENT_URI
+//    }
 }

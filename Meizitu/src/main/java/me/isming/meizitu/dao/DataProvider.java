@@ -23,11 +23,13 @@ public class DataProvider extends ContentProvider {
     public static final String SCHEME = "content://";
 
     // messages
-    public static final String PATH_FEEDS = "/feeds";
+    public static String PATH_FEEDS = "/feeds";
+
+    public static final String PATH_FEED = "/feeds";
 
     public static final String PATH_LIKES = "/likes";
 
-    public static final Uri FEEDS_CONTENT_URI = Uri.parse(SCHEME + AUTHORITY + PATH_FEEDS);
+    public static Uri FEEDS_CONTENT_URI = Uri.parse(SCHEME + AUTHORITY + PATH_FEEDS);
 
     public static final Uri LIKES_CONTENT_URI = Uri.parse(SCHEME + AUTHORITY + PATH_LIKES);
 
@@ -174,4 +176,12 @@ public class DataProvider extends ContentProvider {
         }
         return table;
     }
+
+    public static void reInitArgs(int sectionNumber) {
+        PATH_FEEDS = PATH_FEED + Integer.toString(sectionNumber);
+        FEEDS_CONTENT_URI = Uri.parse(SCHEME + AUTHORITY + PATH_FEEDS);
+        sUriMatcher.addURI(AUTHORITY, "feeds" + sectionNumber, FEEDS);
+//        FeedsDataHelper.FeedsDBInfo.TABLE_NAME += Integer.toString(sectionNumber);
+    }
+
 }
