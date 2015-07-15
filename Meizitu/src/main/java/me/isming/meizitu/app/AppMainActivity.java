@@ -22,10 +22,12 @@ import com.umeng.fb.FeedbackAgent;
 import com.umeng.update.UmengUpdateAgent;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import me.isming.meizitu.util.CLog;
 import me.isming.meizitu.util.DeviceUtil;
@@ -37,7 +39,7 @@ public class AppMainActivity extends BaseActivity
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
-    private static final String PREF_FEED_NAME = "allFeeds";
+    public static final String PREF_FEED_NAME = "allFeeds";
 
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
@@ -45,13 +47,18 @@ public class AppMainActivity extends BaseActivity
 
     private MenuItem mMenu;
 
-    private Map<String, String> mFeeds = new HashMap<String, String>();
+    private int mPosition = 100;
+
+    public static Map<String, String> mFeeds = new HashMap<String, String>();
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
 
+//    public static Map<String, String> getFeeds() {
+//        return mFeeds;
+//    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,14 +67,7 @@ public class AppMainActivity extends BaseActivity
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
-        SharedPreferences feeds = getPreferences(Context.MODE_PRIVATE);
-        String json_feeds = feeds.getString(PREF_FEED_NAME, null);
-        if (json_feeds == null) {
-            mFeeds.put("haixiu", "http://23.252.109.110:5000/results/dump/haixiuzu2.txt");
-        } else {
-            mFeeds = new Gson().fromJson(json_feeds, new TypeToken<Map<String, String>>() {
-            }.getType());
-        }
+
 
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
@@ -90,15 +90,20 @@ public class AppMainActivity extends BaseActivity
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
+        if (mPosition == position) return;
+        mPosition = position;
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
-        if (position == 0) {
-            mContentFragment = FeedsFragment.newInstance(position + 1);
-        }
-
-        if (position == 1) {
-            mContentFragment = LikesFragment.newInstance(position + 1);
+//        if (position == 0) {
+//            mContentFragment = FeedsFragment.newInstance(position + 1);
+//        }
+        if (mContentFragment != null)
+            fragmentManager.beginTransaction().remove(mContentFragment).commit();
+        if (position == mFeeds.size()) {
+            mContentFragment = LikesFragment.newInstance(position);
 //            mMenu.setVisible(false);
+        } else {
+            mContentFragment = FeedsFragment.newInstance(position);
         }
 
         fragmentManager.beginTransaction()
@@ -111,14 +116,21 @@ public class AppMainActivity extends BaseActivity
 //    }
 
     public void onSectionAttached(int number) {
-        switch (number) {
-            case 1:
-                mTitle = getString(R.string.title_new);
-                break;
-            case 2:
-                mTitle = getString(R.string.title_like);
-                break;
+        if(number == mFeeds.size()) mTitle = getString(R.string.title_like);
+        else {
+            ArrayList<String> keys = new ArrayList<String>(mFeeds.keySet());
+            Collections.sort(keys);
+            mTitle = keys.get(number);
         }
+
+//        switch (number) {
+//            case 1:
+//
+//                break;
+//            case 2:
+//                mTitle = getString(R.string.title_like);
+//                break;
+//        }
     }
 
     public void restoreActionBar() {
@@ -191,8 +203,22 @@ public class AppMainActivity extends BaseActivity
                             // edit text
 //                            result.setText(userInput.getText());
                             CLog.d(titleBox.getText());
-                            if (titleBox.getText().toString().trim() != "" && Patterns.WEB_URL.matcher(descriptionBox.getText().toString().trim()).matches()) {
-                                mFeeds.put(titleBox.getText().toString().trim(), descriptionBox.getText().toString().trim());
+                            String title = titleBox.getText().toString().trim();
+                            if (title != "" && Patterns.WEB_URL.matcher(descriptionBox.getText().toString().trim()).matches()) {
+                                mFeeds.put(title, descriptionBox.getText().toString().trim());
+                                mNavigationDrawerFragment.addFeedAndUpdate(title);
+
+                                Set<String> keys = AppMainActivity.mFeeds.keySet();
+                                ArrayList<String> feeds =  new ArrayList<String>(keys);
+                                Collections.sort(feeds);
+
+                                FragmentManager fragmentManager = getSupportFragmentManager();
+                                mContentFragment = FeedsFragment.newInstance(feeds.indexOf(title));
+
+
+                                fragmentManager.beginTransaction()
+                                        .replace(R.id.container, mContentFragment)
+                                        .commit();
                             }
 //                            Toast.makeText(AppMainActivity.this, "Get URL", Toast.LENGTH_LONG);
                         }

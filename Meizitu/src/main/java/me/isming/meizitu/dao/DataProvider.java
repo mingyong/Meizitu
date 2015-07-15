@@ -177,8 +177,8 @@ public class DataProvider extends ContentProvider {
         return table;
     }
 
-    public static void reInitArgs(int sectionNumber) {
-        PATH_FEEDS = PATH_FEED + Integer.toString(sectionNumber);
+    public static void reInitArgs(String sectionNumber) {
+        PATH_FEEDS = PATH_FEED + sectionNumber;
         FEEDS_CONTENT_URI = Uri.parse(SCHEME + AUTHORITY + PATH_FEEDS);
         sUriMatcher.addURI(AUTHORITY, "feeds" + sectionNumber, FEEDS);
 //        FeedsDataHelper.FeedsDBInfo.TABLE_NAME += Integer.toString(sectionNumber);

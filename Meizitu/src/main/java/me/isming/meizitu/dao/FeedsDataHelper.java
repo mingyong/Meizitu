@@ -9,18 +9,18 @@ import android.provider.BaseColumns;
 import android.support.v4.content.CursorLoader;
 import com.google.gson.Gson;
 import me.isming.meizitu.model.Feed;
+import me.isming.meizitu.util.CLog;
 import me.isming.meizitu.util.database.Column;
 import me.isming.meizitu.util.database.SQLiteTable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 public class FeedsDataHelper extends BaseDataHelper {
-    private static int mSectionNumber;
-    public FeedsDataHelper(Context context, int sectionNumber) {
+    public FeedsDataHelper(Context context) {
         super(context);
-        mSectionNumber = sectionNumber;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class FeedsDataHelper extends BaseDataHelper {
     public void bulkInsert(List<Feed> feeds) {
         ArrayList<ContentValues> contentValues = new ArrayList<ContentValues>();
         for (Feed feed : feeds) {
-            feed.setId(feed.getDate().replaceAll("\\W+", ""));
+            feed.setId(feed.getDate().replaceAll("\\W+", "") + UUID.randomUUID().toString());
             ContentValues values = getContentValues(feed);
             contentValues.add(values);
         }
@@ -78,11 +78,20 @@ public class FeedsDataHelper extends BaseDataHelper {
         return new CursorLoader(getContext(), getContentUri(), null, null, null, FeedsDBInfo.ID + " DESC");
     }
 
+    public void setTableName(String name) {
+        FeedsDBInfo.TABLE.setTableName("feeds" + name);
+        synchronized (DataProvider.DBLock) {
+            DBHelper mDBHelper = DataProvider.getDBHelper();
+            SQLiteDatabase db = mDBHelper.getWritableDatabase();
+            FeedsDBInfo.TABLE.create(db);
+        }
+    }
+
     public static final class FeedsDBInfo implements BaseColumns {
         private FeedsDBInfo() {
         }
 
-        public static final String TABLE_NAME = "feeds" + mSectionNumber;
+        public static String TABLE_NAME = "feeds" + "meizitu";
 
         public static final String ID = "id";
         public static final String AUTHOR = "author";

@@ -8,4 +8,5 @@
     android:background="#ffffff"
     android:layout_marginTop="20dp"
     android:paddingTop="40dp"
+    android:longClickable="true"
     tools:context="me.isming.meizitu.app.NavigationDrawerFragment" />

@@ -19,4 +19,5 @@
     <string name="title_new">最新</string>
     <string name="title_like">收藏</string>
     <string name="action_add">Add Feed</string>
+    <string name="action_delete">Delete this feed [%s]</string>
 </resources>

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 
 public class SQLiteTable {
+
     String mTableName;
 
     ArrayList<Column> mColumnsDefinitions = new ArrayList<Column>();
@@ -69,5 +70,9 @@ public class SQLiteTable {
 
     public void delete(final SQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS " + mTableName);
+    }
+
+    public void setTableName(String tableName) {
+        this.mTableName = tableName;
     }
 }

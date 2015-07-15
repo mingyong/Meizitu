@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -59,6 +60,7 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
     private static int mSectionNumber = 0;
     private String mLatest = null;
     private String mString = "http://23.252.109.110:5000/results/dump/haixiuzu2.txt";
+    private String mFileName;
 
     public static FeedsFragment newInstance(int sectionNumber) {
         mSectionNumber = sectionNumber;
@@ -77,10 +79,32 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
         mSwipeLayout = (SwipeRefreshLayout) contentView.findViewById(R.id.swipe_container);
 
         mSwipeLayout.setSize(SwipeRefreshLayout.LARGE);
-        DataProvider.reInitArgs(mSectionNumber);
-        mDataHelper = new FeedsDataHelper(App.getContext(), mSectionNumber);
-        getLoaderManager().initLoader(0, null, this);
+
+        Set<String> keys = AppMainActivity.mFeeds.keySet();
+        ArrayList<String> feed_like =  new ArrayList<String>(keys);
+        Collections.sort(feed_like);
+
+        mString = AppMainActivity.mFeeds.get(feed_like.get(mSectionNumber));
+
+        mFileName = mString.substring(mString.lastIndexOf("/") + 1, mString.lastIndexOf(".txt"));
+
+        CLog.i("mString: " + mString);
+
+        CLog.i("fileName: " + mFileName);
+
+//        mFileName = "haixiuzu2";
+
+        DataProvider.reInitArgs(mFileName);
+        FeedsDataHelper.FeedsDBInfo.TABLE_NAME = "feeds" + mFileName;
+        mDataHelper = new FeedsDataHelper(App.getContext());
+        mDataHelper.setTableName(mFileName);
+        CLog.i("content_uri: " + DataProvider.FEEDS_CONTENT_URI.getPath());
+//        mDataHelper.notifyChange();
+//        getLoaderManager().initLoader(0, null, this);
         mAdapter = new FeedsAdapter(getActivity(), mListView);
+//        mAdapter.notifyDataSetChanged();
+//        mListView.setEmptyView();
+//        mAdapter.changeCursor(null);
         View header = new View(getActivity());
         mListView.addHeaderView(header);
         AnimationAdapter animationAdapter = new CardsAnimationAdapter(mAdapter);
@@ -92,7 +116,7 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
 //                loadNextData();
 //            }
 //        });
-
+//        getLoaderManager().initLoader(0, null, this);
         mListView.setLoadNextListener(null);
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -125,6 +149,12 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
         mSwipeLayout.setColorSchemeResources(R.color.material_700, R.color.material_500);
 
         return contentView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        getLoaderManager().initLoader(0, null, this);
     }
 
     private void initActionBar() {
@@ -163,7 +193,7 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
         if (!mSwipeLayout.isRefreshing()) {
             mSwipeLayout.setRefreshing(true);
         }
-        CLog.d("Refresh"+getRefreshUrl());
+        CLog.d("Refresh:"+getRefreshUrl());
         executeRequest(new GsonRequest(getRefreshUrl(), Feed[].class, responseListener(), errorListener()));
     }
 
@@ -248,6 +278,7 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        CLog.d("onCreateLoader");
         return mDataHelper.getCursorLoader();
     }
 
@@ -281,9 +312,17 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+//        if (mAdapter != null) mAdapter.changeCursor(null);
         ((AppMainActivity) activity).onSectionAttached(
                 getArguments().getInt(ARG_SECTION_NUMBER));
     }
+
+//    @Override
+//    public void onDetach() {
+//        super.onDetach();
+//       if (mAdapter != null) mAdapter.changeCursor(null);
+//
+//    }
 
 //    private void initDBArgs(int sectionNumber) {
 //        DataProvider.PATH_FEEDS += Integer.toString(sectionNumber);

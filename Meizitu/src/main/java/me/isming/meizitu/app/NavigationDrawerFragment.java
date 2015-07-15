@@ -1,5 +1,8 @@
 package me.isming.meizitu.app;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.support.v7.app.ActionBarActivity;
 import android.app.Activity;
 import android.support.v7.app.ActionBar;
@@ -21,6 +24,18 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import me.isming.meizitu.util.CLog;
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
@@ -58,7 +73,17 @@ public class NavigationDrawerFragment extends Fragment {
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
 
+    private ArrayList<String> feed_like;
+
     public NavigationDrawerFragment() {
+    }
+
+    public void addFeedAndUpdate(String feed) {
+        feed_like.add(feed_like.size() - 1, feed);
+        String like = feed_like.remove(feed_like.size() - 1);
+        Collections.sort(feed_like);
+        feed_like.add(like);
+        ((ArrayAdapter) mDrawerListView.getAdapter()).notifyDataSetChanged();
     }
 
     @Override
@@ -73,6 +98,16 @@ public class NavigationDrawerFragment extends Fragment {
         if (savedInstanceState != null) {
             mCurrentSelectedPosition = savedInstanceState.getInt(STATE_SELECTED_POSITION);
             mFromSavedInstanceState = true;
+        }
+
+        SharedPreferences feeds = getActivity().getPreferences(Context.MODE_PRIVATE);
+        String json_feeds = feeds.getString(AppMainActivity.PREF_FEED_NAME, null);
+        if (json_feeds == null) {
+//            AppMainActivity.mFeeds.put("haixiu", "http://23.252.109.110:5000/results/dump/haixiuzu2.txt");
+            AppMainActivity.mFeeds.put("meizitu", "http://23.252.109.110:5000/results/dump/meizitu.txt");
+        } else {
+            AppMainActivity.mFeeds = new Gson().fromJson(json_feeds, new TypeToken<Map<String, String>>() {
+            }.getType());
         }
 
         // Select either the default item (0) or the last selected item.
@@ -97,15 +132,57 @@ public class NavigationDrawerFragment extends Fragment {
                 selectItem(position);
             }
         });
+
+        Set<String> keys = AppMainActivity.mFeeds.keySet();
+        feed_like =  new ArrayList<String>(keys);
+        Collections.sort(feed_like);
+        feed_like.add(getString(R.string.title_like));
+
         mDrawerListView.setAdapter(new ArrayAdapter<String>(
                 getActionBar().getThemedContext(),
                 R.layout.simple_list_item,
                 R.id.text1,
-                new String[]{
-                        getString(R.string.title_new),
-                        getString(R.string.title_like),
-                }));
+                feed_like
+//                new String[]{
+//                        getString(R.string.title_new),
+//                        getString(R.string.title_like),
+//                }
+        ));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
+        if (feed_like.size() < 3) return mDrawerListView;
+        mDrawerListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
+                                           final int pos, long id) {
+                // TODO Auto-generated method stub
+//                String title = feed_like[pos];
+                AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+                builder.setTitle(String.format(getString(R.string.action_delete), feed_like.get(pos)));
+                builder.setPositiveButton(getString(android.R.string.ok),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                // get user input and set it to result
+                                // edit text
+                                AppMainActivity.mFeeds.remove(feed_like.get(pos));
+                                feed_like.remove(pos);
+                                ((ArrayAdapter)mDrawerListView.getAdapter()).notifyDataSetChanged();
+
+//                                (ArrayAdapter<String>)mDrawerListView.getAdapter().notify();
+//                            Toast.makeText(AppMainActivity.this, "Get URL", Toast.LENGTH_LONG);
+                            }
+                        })
+                        .setNegativeButton(getString(android.R.string.cancel),
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+                builder.create().show();
+
+//                Log.v("long clicked","pos: " + pos);
+
+                return true;
+            }
+        });
         return mDrawerListView;
     }
 
