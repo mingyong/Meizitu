@@ -100,7 +100,7 @@ public class AppMainActivity extends BaseActivity
         if (mContentFragment != null)
             fragmentManager.beginTransaction().remove(mContentFragment).commit();
         if (position == mFeeds.size()) {
-            mContentFragment = LikesFragment.newInstance(position);
+            mContentFragment = LikesGridFragment.newInstance(position);
 //            mMenu.setVisible(false);
         } else {
             mContentFragment = FeedsFragment.newInstance(position);
@@ -150,7 +150,7 @@ public class AppMainActivity extends BaseActivity
             // decide what to show in the action bar.
             getMenuInflater().inflate(R.menu.main, menu);
             mMenu = menu.findItem(R.id.action_refresh);
-            if (mContentFragment != null && mContentFragment instanceof LikesFragment) {
+            if (mContentFragment != null && mContentFragment instanceof LikesGridFragment) {
                 mMenu.setVisible(false);
             }
 //
