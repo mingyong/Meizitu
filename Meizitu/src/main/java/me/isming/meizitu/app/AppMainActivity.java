@@ -116,6 +116,7 @@ public class AppMainActivity extends BaseActivity
 //    }
 
     public void onSectionAttached(int number) {
+        if(number > mFeeds.size()) return;
         if(number == mFeeds.size()) mTitle = getString(R.string.title_like);
         else {
             ArrayList<String> keys = new ArrayList<String>(mFeeds.keySet());

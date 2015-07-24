@@ -24,22 +24,31 @@ import me.isming.meizitu.adapter.FeedsAdapter;
 import me.isming.meizitu.adapter.StaggeredAdapter;
 import me.isming.meizitu.dao.LikesDataHelper;
 import me.isming.meizitu.model.Feed;
+import me.isming.meizitu.util.CLog;
 import me.isming.meizitu.util.ListViewUtils;
 import me.isming.meizitu.view.PageListView;
 
 import com.origamilabs.library.views.StaggeredGridView;
 
+import java.util.ArrayList;
+
 
 /**
  * Created by Sam on 14-3-25.
  */
-public class LikesGridFragment extends BaseFragment {
+public class LikesGridFragment extends BaseFragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private static final String ARG_SECTION_NUMBER = "section_number";
 
     SwipeRefreshLayout mSwipeLayout;
 
     StaggeredGridView mGridView;
+
+    private LikesDataHelper mDataHelper;
+
+    private ArrayList<String> mUrls = new ArrayList<String>();
+
+    private StaggeredAdapter mAdapter;
     
     private String urls[] = { 
 			"http://farm7.staticflickr.com/6101/6853156632_6374976d38_c.jpg",
@@ -85,18 +94,21 @@ public class LikesGridFragment extends BaseFragment {
 
         mGridView = (StaggeredGridView)contentView.findViewById(R.id.staggeredGridView1);
         mSwipeLayout = (SwipeRefreshLayout) contentView.findViewById(R.id.swipe_container);
+
+        mDataHelper = new LikesDataHelper(App.getContext());
+        getLoaderManager().initLoader(0, null, this);
         
         int margin = getResources().getDimensionPixelSize(R.dimen.margin);
         
         mGridView.setItemMargin(margin); // set the GridView margin
 		
 		mGridView.setPadding(margin, 0, margin, 0); // have the margin on the sides as well
-        StaggeredAdapter adapter = new StaggeredAdapter(getActivity(), R.id.imageView1, urls);
+        mAdapter = new StaggeredAdapter(getActivity(), R.id.imageView1, mUrls);
         
         
         
-        mGridView.setAdapter(adapter);
-        adapter.notifyDataSetChanged();
+        mGridView.setAdapter(mAdapter);
+//        adapter.notifyDataSetChanged();
         
 //        mSwipeLayout.setColorSchemeResources(R.color.material_700, R.color.material_500);
         mSwipeLayout.setEnabled(false);
@@ -117,6 +129,39 @@ public class LikesGridFragment extends BaseFragment {
 //                ListViewUtils.smoothScrollListViewToTop(mListView);
 //            }
 //        });
+    }
+
+//    public void scrollTopAndRefresh() {
+//        if (mListView != null) {
+//            ListViewUtils.smoothScrollListViewToTop(mListView);
+//        }
+//    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            return mDataHelper.getCursorLoader();
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+//            mAdapter.changeCursor(data);
+        data.moveToFirst();
+        while (!data.isAfterLast()) {
+            Feed feed = Feed.fromCursor(data);
+            mUrls.addAll(feed.getImgs());
+            data.moveToNext();
+        }
+
+        for(String url : mUrls) {
+            CLog.d("img url: " + url);
+        }
+
+        mAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+//            mAdapter.changeCursor(null);
     }
 
     @Override

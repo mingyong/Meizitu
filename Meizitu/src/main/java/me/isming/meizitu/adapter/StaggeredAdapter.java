@@ -16,6 +16,8 @@ import android.widget.ImageView;
 
 import com.android.volley.toolbox.ImageLoader;
 
+import java.util.ArrayList;
+
 import me.isming.meizitu.app.R;
 import me.isming.meizitu.data.ImageCacheManager;
 import me.isming.meizitu.util.CLog;
@@ -27,7 +29,7 @@ public class StaggeredAdapter extends ArrayAdapter<String> {
 	private Drawable mDefaultImageDrawable = new ColorDrawable(Color.argb(255, 201, 201, 201));
 
 	public StaggeredAdapter(Context context, int textViewResourceId,
-			String[] objects) {
+			ArrayList<String> objects) {
 		super(context, textViewResourceId, objects);
 //		mLoader = new ImageLoader(context);
 	}
