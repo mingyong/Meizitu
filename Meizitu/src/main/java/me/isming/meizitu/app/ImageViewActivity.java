@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -52,6 +53,8 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
     public static final String IMAGE_AUTHOR = "image_author";
     public static final String IMAGE_DATE = "image_date";
     public static final String IMAGE_ORIGINURL = "image_originurl";
+    public static final String IMAGE_INDEX = "image_index";
+
 
     //PhotoView photoView;
 
@@ -71,6 +74,7 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
     private TextView dateView;
 //    private TextView authorView;
     private String mId;
+    private int mIndex;
     private boolean mIsFavd;
     private LikesDataHelper mLikeHelper;
 
@@ -90,6 +94,8 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
         }.getType());
         mDate = getIntent().getStringExtra(IMAGE_DATE);
         mOriginURL = getIntent().getStringExtra(IMAGE_ORIGINURL);
+        mIndex = getIntent().getIntExtra(IMAGE_INDEX, 0);
+        CToast.showToast(this, "index: " + mIndex);
 //        if (mId <= 0) {
 //            finish();
 //            return;
@@ -100,7 +106,7 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
         setTitle(mTitle);
         views = new ArrayList<View>();
         tv = (TextView) findViewById(R.id.textView);
-        tv.setText(1+"/"+urls.size());
+        tv.setText((mIndex + 1) +"/" + urls.size());
 
         dateView = (TextView) findViewById(R.id.textView_date);
         dateView.setText(mDate);
@@ -120,6 +126,7 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
 //        }
 
         pager = (ViewPager) findViewById(R.id.viewpage);
+//        pager.setCurrentItem(mIndex);
         photoViews = new ArrayList<PhotoView>();
         mAttachers = new ArrayList<PhotoViewAttacher>();
         progressWheels = new ArrayList<ProgressWheel>();
@@ -182,9 +189,10 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
             }
 
         };
+
         pager.setAdapter(mPagerAdapter);
         pager.setOnPageChangeListener(this);
-
+        pager.setCurrentItem(mIndex);
     }
 
     @Override
