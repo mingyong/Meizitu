@@ -103,7 +103,7 @@ public class AppMainActivity extends BaseActivity
             mContentFragment = LikesGridFragment.newInstance(position);
 //            mMenu.setVisible(false);
         } else {
-            mContentFragment = FeedsFragment.newInstance(position);
+            mContentFragment = FeedsGridFragment.newInstance(position);
         }
 
         fragmentManager.beginTransaction()
@@ -214,7 +214,7 @@ public class AppMainActivity extends BaseActivity
                                 Collections.sort(feeds);
 
                                 FragmentManager fragmentManager = getSupportFragmentManager();
-                                mContentFragment = FeedsFragment.newInstance(feeds.indexOf(title));
+                                mContentFragment = FeedsGridFragment.newInstance(feeds.indexOf(title));
 
 
                                 fragmentManager.beginTransaction()

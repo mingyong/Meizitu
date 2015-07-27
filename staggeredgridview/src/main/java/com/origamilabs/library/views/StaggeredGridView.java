@@ -54,6 +54,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityEvent;
+import android.widget.AbsListView;
 import android.widget.ListAdapter;
 
 /**
@@ -161,6 +162,8 @@ public class StaggeredGridView extends ViewGroup {
     private Runnable mPendingCheckForTap;
     
     private ContextMenuInfo mContextMenuInfo = null;
+
+    private AbsListView.OnScrollListener mOnScrollListener;
     
     /**
      * The drawable used to draw the selector
@@ -677,7 +680,12 @@ public class StaggeredGridView extends ViewGroup {
         } else {
             mSelectorRect.setEmpty();
         }
-        
+
+          /* HERE we call onScroll */
+        if (mOnScrollListener != null) {
+            mOnScrollListener.onScroll(null, getFirstPosition(), getChildCount(), this.mItemCount);
+        }
+
         return deltaY == 0 || movedBy != 0;
     }
 
@@ -2631,6 +2639,8 @@ public class StaggeredGridView extends ViewGroup {
 	public void setDrawSelectorOnTop(boolean mDrawSelectorOnTop) {
 		this.mDrawSelectorOnTop = mDrawSelectorOnTop;
 	}
-    
-    
+
+    public void setOnScrollListener (AbsListView.OnScrollListener l) {
+        mOnScrollListener = l;
+    }
 }

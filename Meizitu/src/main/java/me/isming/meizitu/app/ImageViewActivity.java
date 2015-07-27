@@ -95,7 +95,7 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
         mDate = getIntent().getStringExtra(IMAGE_DATE);
         mOriginURL = getIntent().getStringExtra(IMAGE_ORIGINURL);
         mIndex = getIntent().getIntExtra(IMAGE_INDEX, 0);
-        CToast.showToast(this, "index: " + mIndex);
+//        CToast.showToast(this, "index: " + mIndex);
 //        if (mId <= 0) {
 //            finish();
 //            return;
