@@ -45,7 +45,6 @@
         android:textSize="18sp"
         android:id="@+id/textView_date"
         android:textColor="@color/tishi"
-        android:background="@color/tishi_back"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:padding="10dp"

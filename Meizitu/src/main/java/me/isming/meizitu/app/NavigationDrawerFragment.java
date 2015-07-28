@@ -165,6 +165,7 @@ public class NavigationDrawerFragment extends Fragment {
                                 AppMainActivity.mFeeds.remove(feed_like.get(pos));
                                 feed_like.remove(pos);
                                 ((ArrayAdapter)mDrawerListView.getAdapter()).notifyDataSetChanged();
+                                selectItem(0);
 
 //                                (ArrayAdapter<String>)mDrawerListView.getAdapter().notify();
 //                            Toast.makeText(AppMainActivity.this, "Get URL", Toast.LENGTH_LONG);

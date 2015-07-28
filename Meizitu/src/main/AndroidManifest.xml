@@ -24,6 +24,9 @@
             android:name="me.isming.meizitu.app.ImageViewActivity"
             android:label="@string/app_name" />
         <activity
+            android:name="me.isming.meizitu.app.AddFeedActivity"
+            android:label="@string/app_name" />
+        <activity
             android:name="com.umeng.fb.ConversationActivity"
             android:theme="@android:style/Theme.NoTitleBar" />
         <activity
@@ -42,7 +45,7 @@
 
         <meta-data
             android:name="UMENG_APPKEY"
-            android:value="5357d90a56240b77310652f4" />
+            android:value="55b6dff1e0f55aa819003945" />
         <meta-data
             android:name="UMENG_CHANNEL"
             android:value="${UMENG_CHANNEL_VALUE}" />

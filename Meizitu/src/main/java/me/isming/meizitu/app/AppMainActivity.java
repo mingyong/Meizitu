@@ -3,6 +3,7 @@ package me.isming.meizitu.app;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentManager;
@@ -40,6 +41,7 @@ public class AppMainActivity extends BaseActivity
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     public static final String PREF_FEED_NAME = "allFeeds";
+    private static final int REQUEST_CODE = 10;
 
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
@@ -117,12 +119,15 @@ public class AppMainActivity extends BaseActivity
 
     public void onSectionAttached(int number) {
         if(number > mFeeds.size()) return;
+        mPosition = number;
         if(number == mFeeds.size()) mTitle = getString(R.string.title_like);
         else {
             ArrayList<String> keys = new ArrayList<String>(mFeeds.keySet());
             Collections.sort(keys);
             mTitle = keys.get(number);
         }
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.setTitle(mTitle);
 
 //        switch (number) {
 //            case 1:
@@ -162,6 +167,35 @@ public class AppMainActivity extends BaseActivity
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
+            if (data.hasExtra("feed_name") && data.hasExtra("feed_url")) {
+                String feed_name = data.getExtras().getString("feed_name");
+                String feed_url = data.getExtras().getString("feed_url");
+
+                mFeeds.put(feed_name, feed_url);
+                mNavigationDrawerFragment.addFeedAndUpdate(feed_name);
+
+                Set<String> keys = AppMainActivity.mFeeds.keySet();
+                ArrayList<String> feeds =  new ArrayList<String>(keys);
+                Collections.sort(feeds);
+
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                mContentFragment = FeedsGridFragment.newInstance(feeds.indexOf(feed_name));
+
+                mTitle = feed_name;
+                ActionBar actionBar = getSupportActionBar();
+                actionBar.setTitle(mTitle);
+
+
+//                fragmentManager.beginTransaction()
+//                        .replace(R.id.container, mContentFragment)
+//                        .commit();
+            }
+        }
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -182,61 +216,92 @@ public class AppMainActivity extends BaseActivity
                 mContentFragment.scrollTopAndRefresh();
             }
         } else if(id == R.id.action_add) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(getString(R.string.action_add));
-            LinearLayout layout = new LinearLayout(this);
-            layout.setOrientation(LinearLayout.VERTICAL);
-
-            final EditText titleBox = new EditText(this);
-            titleBox.setHint("Title");
-            layout.addView(titleBox);
-
-            final EditText descriptionBox = new EditText(this);
-            descriptionBox.setHint("URL");
-            layout.addView(descriptionBox);
-
-            builder.setView(layout);
-
-            builder.setPositiveButton(getString(android.R.string.ok),
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            // get user input and set it to result
-                            // edit text
-//                            result.setText(userInput.getText());
-                            CLog.d(titleBox.getText());
-                            String title = titleBox.getText().toString().trim();
-                            if (title != "" && Patterns.WEB_URL.matcher(descriptionBox.getText().toString().trim()).matches()) {
-                                mFeeds.put(title, descriptionBox.getText().toString().trim());
-                                mNavigationDrawerFragment.addFeedAndUpdate(title);
-
-                                Set<String> keys = AppMainActivity.mFeeds.keySet();
-                                ArrayList<String> feeds =  new ArrayList<String>(keys);
-                                Collections.sort(feeds);
-
-                                FragmentManager fragmentManager = getSupportFragmentManager();
-                                mContentFragment = FeedsGridFragment.newInstance(feeds.indexOf(title));
+            Intent i = new Intent(this, AddFeedActivity.class);
+            startActivityForResult(i, REQUEST_CODE);
 
 
-                                fragmentManager.beginTransaction()
-                                        .replace(R.id.container, mContentFragment)
-                                        .commit();
-                            }
-//                            Toast.makeText(AppMainActivity.this, "Get URL", Toast.LENGTH_LONG);
-                        }
-                    })
-                    .setNegativeButton(getString(android.R.string.cancel),
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    dialog.cancel();
-                                }
-                            });
-            builder.create().show();
+//            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//            builder.setTitle(getString(R.string.action_add));
+//            LinearLayout layout = new LinearLayout(this);
+//            layout.setOrientation(LinearLayout.VERTICAL);
+//
+//            final EditText titleBox = new EditText(this);
+//            titleBox.setHint("Title");
+//            layout.addView(titleBox);
+//
+//            final EditText descriptionBox = new EditText(this);
+//            descriptionBox.setHint("URL");
+//            layout.addView(descriptionBox);
+//
+//            builder.setView(layout);
+//
+//            builder.setPositiveButton(getString(android.R.string.ok),
+//                    new DialogInterface.OnClickListener() {
+//                        public void onClick(DialogInterface dialog, int id) {
+//                            // get user input and set it to result
+//                            // edit text
+////                            result.setText(userInput.getText());
+//                            CLog.d(titleBox.getText());
+//                            String title = titleBox.getText().toString().trim();
+//                            if (title != "" && Patterns.WEB_URL.matcher(descriptionBox.getText().toString().trim()).matches()) {
+//                                mFeeds.put(title, descriptionBox.getText().toString().trim());
+//                                mNavigationDrawerFragment.addFeedAndUpdate(title);
+//
+//                                Set<String> keys = AppMainActivity.mFeeds.keySet();
+//                                ArrayList<String> feeds =  new ArrayList<String>(keys);
+//                                Collections.sort(feeds);
+//
+//                                FragmentManager fragmentManager = getSupportFragmentManager();
+//                                mContentFragment = FeedsGridFragment.newInstance(feeds.indexOf(title));
+//
+//
+//                                fragmentManager.beginTransaction()
+//                                        .replace(R.id.container, mContentFragment)
+//                                        .commit();
+//                            }
+////                            Toast.makeText(AppMainActivity.this, "Get URL", Toast.LENGTH_LONG);
+//                        }
+//                    })
+//                    .setNegativeButton(getString(android.R.string.cancel),
+//                            new DialogInterface.OnClickListener() {
+//                                public void onClick(DialogInterface dialog, int id) {
+//                                    dialog.cancel();
+//                                }
+//                            });
+//            builder.create().show();
+        } else if(id == R.id.action_switch) {
+            if(mContentFragment == null)
+                return super.onOptionsItemSelected(item);
+            FragmentManager fragmentManager = getSupportFragmentManager();
+//            mContentFragment = FeedsGridFragment.newInstance(feeds.indexOf(title));
+            boolean grid = mContentFragment.getClass().getSimpleName().contains("Grid");
+            boolean like = mContentFragment.getClass().getSimpleName().contains("Like");
+            if (like == true && grid == false) {
+                mContentFragment = LikesGridFragment.newInstance(mPosition);
+            } else if (like == true && grid == true) {
+                mContentFragment = LikesFragment.newInstance(mPosition);
+            } else if (like == false && grid == true) {
+                mContentFragment = FeedsFragment.newInstance(mPosition);
+            } else if (like == false && grid == false) {
+                mContentFragment = FeedsGridFragment.newInstance(mPosition);
+            }
+
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, mContentFragment)
+                    .commit();
         }
         return super.onOptionsItemSelected(item);
     }
 
     public void onResume() {
         super.onResume();
+        if (mContentFragment != null) {
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, mContentFragment)
+                    .commit();
+        }
+
         MobclickAgent.onPageStart("Main"); //统计页面
         MobclickAgent.onResume(this);          //统计时长
     }
