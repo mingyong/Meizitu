@@ -1,5 +1,5 @@
 #### 如何添加图集
-首先需要使用 [pyspider](https://github.com/binux/pyspider) 抓取图片网站上的图片信息, 然后将抓取的结果的 [**URL-JSON**](http://23.252.109.110:5000/results/dump/meizitu.txt) 网址添加到 App, 使用pyspider创建项目时保证项目名称唯一, App 添加页面的输入的名称不能和 App 中现有的图集名称冲突
+首先需要使用 [pyspider](https://github.com/binux/pyspider) 抓取图片网站上的图片信息, 然后将抓取的结果的 [**URL-JSON**](http://23.252.109.110:5000/results/dump/meizitu.txt) 网址添加到 App, 使用pyspider创建多个项目时保证项目名称唯一, App 添加页面输入名称时不能和 App 中现有的图集名称冲突
 
 #### 如何使用 pyspider
 请参考 pyspider 的[文档](

@@ -41,6 +41,7 @@ public class AppMainActivity extends BaseActivity
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     public static final String PREF_FEED_NAME = "allFeeds";
+    public static final String PREF_GRID = "grid";
     private static final int REQUEST_CODE = 10;
 
     private NavigationDrawerFragment mNavigationDrawerFragment;
@@ -49,7 +50,9 @@ public class AppMainActivity extends BaseActivity
 
     private MenuItem mMenu;
 
-    private int mPosition = 100;
+    private boolean mGrid;
+
+    private int mPosition;
 
     public static Map<String, String> mFeeds = new HashMap<String, String>();
 
@@ -70,7 +73,6 @@ public class AppMainActivity extends BaseActivity
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
 
-
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
@@ -87,12 +89,17 @@ public class AppMainActivity extends BaseActivity
         SharedPreferences feeds = getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = feeds.edit();
         editor.putString(PREF_FEED_NAME, new Gson().toJson(mFeeds));
+        editor.putBoolean(PREF_GRID, mGrid);
         editor.commit();
     }
 
     @Override
+    public void setGrid(boolean mGrid) {
+        this.mGrid = mGrid;
+    }
+
+    @Override
     public void onNavigationDrawerItemSelected(int position) {
-        if (mPosition == position) return;
         mPosition = position;
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -102,10 +109,10 @@ public class AppMainActivity extends BaseActivity
         if (mContentFragment != null)
             fragmentManager.beginTransaction().remove(mContentFragment).commit();
         if (position == mFeeds.size()) {
-            mContentFragment = LikesGridFragment.newInstance(position);
+            mContentFragment = mGrid ? LikesGridFragment.newInstance(position) : LikesFragment.newInstance(position);
 //            mMenu.setVisible(false);
         } else {
-            mContentFragment = FeedsGridFragment.newInstance(position);
+            mContentFragment = mGrid ? FeedsGridFragment.newInstance(position) : FeedsFragment.newInstance(position);
         }
 
         fragmentManager.beginTransaction()
@@ -113,9 +120,23 @@ public class AppMainActivity extends BaseActivity
                 .commit();
     }
 
+    @Override
+    public void deleteTable() {
+        if(mContentFragment == null) return;
+
+        if(mContentFragment instanceof FeedsGridFragment) {
+            ((FeedsGridFragment)mContentFragment).getDataHelper().deleteAll();
+        } else if(mContentFragment instanceof FeedsFragment){
+            ((FeedsFragment)mContentFragment).getDataHelper().deleteAll();
+        }
+    }
+
 //    public void disableFreshMenu() {
 //        mMenu.setVisible(false);
 //    }
+    public int getPosition() {
+        return mPosition;
+    }
 
     public void onSectionAttached(int number) {
         if(number > mFeeds.size()) return;
@@ -181,7 +202,7 @@ public class AppMainActivity extends BaseActivity
                 Collections.sort(feeds);
 
                 FragmentManager fragmentManager = getSupportFragmentManager();
-                mContentFragment = FeedsGridFragment.newInstance(feeds.indexOf(feed_name));
+                mContentFragment = mGrid ? FeedsGridFragment.newInstance(feeds.indexOf(feed_name)) : FeedsFragment.newInstance(feeds.indexOf(feed_name));
 
                 mTitle = feed_name;
                 ActionBar actionBar = getSupportActionBar();
@@ -217,6 +238,7 @@ public class AppMainActivity extends BaseActivity
             }
         } else if(id == R.id.action_add) {
             Intent i = new Intent(this, AddFeedActivity.class);
+            i.putStringArrayListExtra(AddFeedActivity.FEED_KEY, new ArrayList<String>(mFeeds.keySet()));
             startActivityForResult(i, REQUEST_CODE);
 
 
@@ -270,6 +292,7 @@ public class AppMainActivity extends BaseActivity
 //                            });
 //            builder.create().show();
         } else if(id == R.id.action_switch) {
+            mGrid = !mGrid;
             if(mContentFragment == null)
                 return super.onOptionsItemSelected(item);
             FragmentManager fragmentManager = getSupportFragmentManager();

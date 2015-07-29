@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.isming.meizitu.util.CLog;
+import me.isming.meizitu.util.CToast;
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
@@ -72,6 +73,7 @@ public class NavigationDrawerFragment extends Fragment {
     private int mCurrentSelectedPosition = 0;
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
+    private boolean mGrid;
 
     private ArrayList<String> feed_like;
 
@@ -102,6 +104,11 @@ public class NavigationDrawerFragment extends Fragment {
 
         SharedPreferences feeds = getActivity().getPreferences(Context.MODE_PRIVATE);
         String json_feeds = feeds.getString(AppMainActivity.PREF_FEED_NAME, null);
+        mGrid = feeds.getBoolean(AppMainActivity.PREF_GRID, false);
+        CLog.d("mCallback is null: " + (mCallbacks == null));
+        if (mCallbacks != null) {
+            mCallbacks.setGrid(mGrid);
+        }
         if (json_feeds == null) {
 //            AppMainActivity.mFeeds.put("haixiu", "http://23.252.109.110:5000/results/dump/haixiuzu2.txt");
             AppMainActivity.mFeeds.put("meizitu", "http://23.252.109.110:5000/results/dump/meizitu.txt");
@@ -162,10 +169,21 @@ public class NavigationDrawerFragment extends Fragment {
                             public void onClick(DialogInterface dialog, int id) {
                                 // get user input and set it to result
                                 // edit text
+                                if (AppMainActivity.mFeeds.size() == pos) {
+                                    CToast.showToast(getActivity(), getString(R.string.do_not_delete_like));
+                                    return;
+                                }
                                 AppMainActivity.mFeeds.remove(feed_like.get(pos));
                                 feed_like.remove(pos);
+
+                                if (mCallbacks != null) {
+                                    mCallbacks.deleteTable();
+                                }
+
                                 ((ArrayAdapter)mDrawerListView.getAdapter()).notifyDataSetChanged();
-                                selectItem(0);
+                                if (((AppMainActivity)getActivity()).getPosition() == pos) {
+                                    selectItem(0);
+                                }
 
 //                                (ArrayAdapter<String>)mDrawerListView.getAdapter().notify();
 //                            Toast.makeText(AppMainActivity.this, "Get URL", Toast.LENGTH_LONG);
@@ -347,5 +365,9 @@ public class NavigationDrawerFragment extends Fragment {
          * Called when an item in the navigation drawer is selected.
          */
         void onNavigationDrawerItemSelected(int position);
+
+        void deleteTable();
+
+        void setGrid(boolean grid);
     }
 }

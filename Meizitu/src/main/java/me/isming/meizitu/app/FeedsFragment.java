@@ -52,7 +52,6 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
     SwipeRefreshLayout mSwipeLayout;
 
     PageListView mListView;
-
     private FeedsDataHelper mDataHelper;
     private FeedsAdapter mAdapter;
     private int mMaxId = 0;
@@ -155,6 +154,11 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
     public void onResume() {
         super.onResume();
         getLoaderManager().initLoader(0, null, this);
+    }
+
+
+    public FeedsDataHelper getDataHelper() {
+        return mDataHelper;
     }
 
     private void initActionBar() {

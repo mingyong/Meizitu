@@ -6,6 +6,6 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="navigation_drawer_width">160dp</dimen>
     <dimen name="layout_margin_top">0dp</dimen>
-    <dimen name="margin">10dp</dimen>
+    <dimen name="margin">5dp</dimen>
 
 </resources>

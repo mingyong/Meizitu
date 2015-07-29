@@ -19,11 +19,13 @@
     <string name="title_new">最新</string>
     <string name="title_like">收藏</string>
     <string name="action_add">添加</string>
-    <string name="action_delete">Delete this feed [%s]</string>
+    <string name="action_delete">删除图集 [%s]</string>
     <string name="action_switch">Switch</string>
     <string name="title_activity_add_feed">AddFeedActivity</string>
 
     <string name="feed_name">名称</string>
     <string name="feed_addr">网址</string>
+
+    <string name="do_not_delete_like">请不要删除收藏</string>
 
 </resources>

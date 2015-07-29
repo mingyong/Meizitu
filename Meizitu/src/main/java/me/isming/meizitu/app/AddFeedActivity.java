@@ -1,6 +1,7 @@
 package me.isming.meizitu.app;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.text.Editable;
@@ -12,13 +13,19 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import java.util.ArrayList;
+
 
 public class AddFeedActivity extends BaseActivity {
-
+    public static final String FEED_KEY = "feed_key";
+    private ArrayList<String> feedKey;
     private EditText mNameTextView;
     private EditText mURLTextView;
 
     private Button mAddButton;
+
+    private final static String ADD_FEED_DETAIL = "https://github.com/scola/Meizitu/blob/master/pyspider/pyspider.md";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +38,8 @@ public class AddFeedActivity extends BaseActivity {
         mNameTextView = (EditText)findViewById(R.id.feed_name);
         mURLTextView = (EditText)findViewById(R.id.feed_addr);
         mAddButton = (Button)findViewById(R.id.add_feed);
+
+        feedKey = getIntent().getStringArrayListExtra(FEED_KEY);
 
         setTitle(getString(R.string.action_add));
 
@@ -64,7 +73,8 @@ public class AddFeedActivity extends BaseActivity {
             public void onTextChanged(CharSequence s, int start,
                                       int before, int count) {
                 String feedURL = mURLTextView.getText().toString().trim();
-                if(mNameTextView.getText().toString().trim().length() != 0 && feedURL.endsWith(".txt") && Patterns.WEB_URL.matcher(feedURL).matches()) {
+                String feedName = mNameTextView.getText().toString().trim();
+                if(feedName.length() != 0 && !feedKey.contains(feedName) && feedURL.endsWith(".txt") && Patterns.WEB_URL.matcher(feedURL).matches()) {
                     mAddButton.setEnabled(true);
                 } else {
                     mAddButton.setEnabled(false);
@@ -89,6 +99,9 @@ public class AddFeedActivity extends BaseActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_detail) {
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setData(Uri.parse(ADD_FEED_DETAIL));
+            startActivity(i);
             return true;
         } else if (id == android.R.id.home) {
             finish();

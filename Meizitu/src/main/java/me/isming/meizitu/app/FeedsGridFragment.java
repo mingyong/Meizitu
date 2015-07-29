@@ -169,6 +169,10 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
         return contentView;
     }
 
+    public FeedsDataHelper getDataHelper() {
+        return mDataHelper;
+    }
+
     public Feed getFeed(int pos) {
         int i;
         for(i = 0; i < mIndexList.size(); i++) {
