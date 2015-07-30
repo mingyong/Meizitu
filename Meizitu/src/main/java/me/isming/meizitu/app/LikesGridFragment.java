@@ -110,6 +110,12 @@ public class LikesGridFragment extends BaseFragment implements LoaderManager.Loa
         return contentView;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        getLoaderManager().restartLoader(0, null, this);
+    }
+
     public Feed getFeed(int pos) {
         int i;
         for(i = 0; i < mIndexList.size(); i++) {
@@ -127,6 +133,13 @@ public class LikesGridFragment extends BaseFragment implements LoaderManager.Loa
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 //            mAdapter.changeCursor(data);
+        if (data == null || data.getCount() == 0) {
+            mUrls.clear();
+            mAdapter.notifyDataSetChanged();
+            return;
+        }
+
+        mUrls.clear();
         mCursor = data;
         data.moveToFirst();
         int imgSize = 0;
@@ -138,9 +151,9 @@ public class LikesGridFragment extends BaseFragment implements LoaderManager.Loa
             data.moveToNext();
         }
 
-        for(String url : mUrls) {
-            CLog.d("img url: " + url);
-        }
+//        for(String url : mUrls) {
+//            CLog.d("img url: " + url);
+//        }
 
         mAdapter.notifyDataSetChanged();
     }

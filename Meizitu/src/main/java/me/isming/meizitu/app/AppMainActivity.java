@@ -106,8 +106,7 @@ public class AppMainActivity extends BaseActivity
 //        if (position == 0) {
 //            mContentFragment = FeedsFragment.newInstance(position + 1);
 //        }
-        if (mContentFragment != null)
-            fragmentManager.beginTransaction().remove(mContentFragment).commit();
+
         if (position == mFeeds.size()) {
             mContentFragment = mGrid ? LikesGridFragment.newInstance(position) : LikesFragment.newInstance(position);
 //            mMenu.setVisible(false);

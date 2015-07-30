@@ -156,6 +156,16 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
         getLoaderManager().initLoader(0, null, this);
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (mSwipeLayout!=null) {
+            mSwipeLayout.setRefreshing(false);
+            mSwipeLayout.destroyDrawingCache();
+            mSwipeLayout.clearAnimation();
+        }
+    }
 
     public FeedsDataHelper getDataHelper() {
         return mDataHelper;

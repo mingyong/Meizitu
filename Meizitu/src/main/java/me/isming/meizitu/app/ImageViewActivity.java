@@ -339,11 +339,12 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
                     dir.mkdirs();
                 }
 
-                final String imgFileName = fileDir+"meizi_"+ SystemClock.elapsedRealtime()+".jpg";
+                final String imgFileName = fileDir+"meizi_"+ mId.substring(0, mId.indexOf("-")) +".jpg";
                 File imgFile = new File(imgFileName);
                 try {
                     if(imgFile.exists()) {
-                        imgFile.delete();
+                        CToast.showToast(ImageViewActivity.this, "图片已经成功为你保存到" + imgFileName);
+                        return;
                     }
                     imgFile.createNewFile();
                     BufferedOutputStream bos = new BufferedOutputStream(
@@ -363,7 +364,7 @@ public class ImageViewActivity extends BaseActivity implements ViewPager.OnPageC
                     ImageViewActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            CToast.showToast(ImageViewActivity.this, "妹子已经成功为你保存到"+imgFileName);
+                            CToast.showToast(ImageViewActivity.this, "图片已经成功为你保存到"+imgFileName);
                         }
                     });
                 } catch (IOException e) {

@@ -12,4 +12,4 @@ http://docs.pyspider.org/), 或者这篇[博客](http://blog.binux.me/2015/01/py
  * imgs (url)
  * author (value 可为空)
  
-可参看抓取[妹子图](www.meizitu.com)的 pyspider [脚本](https://github.com/scola/Meizitu/pyspider/meizitu.py), 不能改变返回字典的 key 的名称
+可参看抓取[妹子图](http://www.meizitu.com)的 pyspider [脚本](https://github.com/scola/Meizitu/blob/master/pyspider/meizitu.py), 不能改变返回字典的 key 的名称

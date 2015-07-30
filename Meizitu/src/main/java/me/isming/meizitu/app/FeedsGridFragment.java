@@ -169,6 +169,17 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
         return contentView;
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (mSwipeLayout!=null) {
+            mSwipeLayout.setRefreshing(false);
+            mSwipeLayout.destroyDrawingCache();
+            mSwipeLayout.clearAnimation();
+        }
+    }
+
     public FeedsDataHelper getDataHelper() {
         return mDataHelper;
     }
@@ -239,6 +250,7 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
                         super.onPostExecute(o);
                         mSwipeLayout.setRefreshing(false);
 //                        mListView.setState(LoadingFooter.State.Idle, 3000);
+                        getLoaderManager().restartLoader(0, null, FeedsGridFragment.this);
                     }
                 });
             }
@@ -281,6 +293,7 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
         if (data != null && data.getCount() == 0) {
             refreshData();
         } else {
+            mUrls.clear();
             mCursor = data;
             data.moveToFirst();
             int imgSize = 0;

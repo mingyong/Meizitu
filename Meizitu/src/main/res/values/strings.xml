@@ -27,5 +27,7 @@
     <string name="feed_addr">网址</string>
 
     <string name="do_not_delete_like">请不要删除收藏</string>
+    <string name="haixiuzu">害羞组</string>
+    <string name="meizitu">妹子图</string>
 
 </resources>
