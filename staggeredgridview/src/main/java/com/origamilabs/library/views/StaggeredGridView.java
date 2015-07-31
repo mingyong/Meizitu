@@ -2103,7 +2103,7 @@ public class StaggeredGridView extends ViewGroup {
         long firstId = -1;
         int position;
         int topOffsets[];
-        ArrayList<ColMap> mapping;
+        ArrayList<ColMap> mapping = new ArrayList<ColMap>();
 
         SavedState(Parcelable superState) {
             super(superState);
@@ -2113,6 +2113,7 @@ public class StaggeredGridView extends ViewGroup {
             super(in);
             firstId = in.readLong();
             position = in.readInt();
+            topOffsets = new int[in.readInt()];
             in.readIntArray(topOffsets);
             in.readTypedList(mapping, ColMap.CREATOR);
             
