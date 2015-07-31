@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <me.isming.meizitu.view.PageListView
+    <me.scola.picrawler.view.PageListView
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

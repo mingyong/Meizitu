@@ -43,10 +43,10 @@
 ## Gson
 -keepattributes *Annotation*
 -keep class sun.misc.Unsafe { *; }
--keep class me.isming.meizitu.model.** { *;}
+-keep class me.scola.picrawler.model.** { *;}
 -keep class com.google.gson.stream.** { *; }
 
--keep public class me.isming.meizitu.app.R$*{
+-keep public class me.scola.picrawler.app.R$*{
 public static final int *;
 }
 -keep public class com.umeng.fb.ui.ThreadView {
