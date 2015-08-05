@@ -127,6 +127,10 @@ public class StaggeredGridView extends ViewGroup {
 
     private int mFirstPosition;
 
+    private boolean mSync;
+    private int mSyncPosition;
+    private int mSpecificTop;
+
     private int mTouchSlop;
     private int mMaximumVelocity;
     private int mFlingVelocity;
@@ -981,6 +985,23 @@ public class StaggeredGridView extends ViewGroup {
         fillUp(mFirstPosition - 1, 0);
         mPopulating = false;
         mDataChanged = false;
+
+        if(mSync) {
+            int firstPosition = getFirstPosition();
+            while(mSyncPosition > firstPosition) {
+                trackMotionScroll(-300, false);
+                firstPosition = getFirstPosition();
+            }
+
+            View view = getChildAt(mSyncPosition - firstPosition);
+            if (view != null) {
+                int delta = view.getTop() - mSpecificTop;
+                trackMotionScroll(-delta, false);
+            }
+
+            mSync = false;
+            mSyncPosition = INVALID_POSITION;
+        }
         
         if(clearData){
         	if(mRestoreOffsets!=null)
@@ -2018,6 +2039,12 @@ public class StaggeredGridView extends ViewGroup {
         public void onChanged() {
             mDataChanged = true;
             mItemCount = mAdapter.getCount();
+
+            if(getChildAt(0) != null) {
+                mSync = true;
+                mSyncPosition = mFirstPosition;
+                mSpecificTop = getChildAt(0).getTop();
+            }
 
             // TODO: Consider matching these back up if we have stable IDs.
             mRecycler.clearTransientViews();

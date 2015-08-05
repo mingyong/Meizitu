@@ -64,6 +64,8 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
     private Cursor mCursor;
     private boolean mFirstItemVisible;
 
+    private AsyncTask<Object, Object, Object> mAsyncTask;
+
 
     public static FeedsGridFragment newInstance(int sectionNumber) {
         mSectionNumber = sectionNumber;
@@ -169,6 +171,10 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
             mSwipeLayout.setRefreshing(false);
             mSwipeLayout.destroyDrawingCache();
             mSwipeLayout.clearAnimation();
+        }
+
+        if (mAsyncTask != null) {
+            mAsyncTask.cancel(true);
         }
     }
 
@@ -279,36 +285,67 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
             return mDataHelper.getCursorLoader();
     }
 
+    private void loadFeedFromDB(int count) {
+        int imgSize = 0;
+        if(mCursor == null) {
+            return;
+        }
+
+        while (mCursor != null && !mCursor.isAfterLast()) {
+            Feed feed = Feed.fromCursor(mCursor);
+            imgSize += feed.getImgs().size();
+            mIndexList.add(imgSize);
+            mUrls.addAll(feed.getImgs());
+            mCursor.moveToNext();
+            if (mCursor.getPosition() == 0) {
+                mLatest = feed.getDate();
+            }
+            if(count > 0 && mCursor.getPosition() == count) {
+                break;
+            }
+        }
+    }
+
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 //            mAdapter.changeCursor(data);
+        CLog.d("onLoadFinished begin");
         if (data != null && data.getCount() == 0) {
             refreshData();
         } else {
             mUrls.clear();
+            mIndexList.clear();
             mCursor = data;
-            data.moveToFirst();
-            int imgSize = 0;
-            Feed feed_latest = Feed.fromCursor(data);
-            mLatest = feed_latest.getDate();
-            imgSize += feed_latest.getImgs().size();
-            mIndexList.add(imgSize);
-            mUrls.addAll(feed_latest.getImgs());
-            data.moveToNext();
+            mCursor.moveToFirst();
+            if (mCursor.getCount() > 50) {
+                loadFeedFromDB(30);
+                mAsyncTask = new AsyncTask<Object, Object, Object>() {
+                    @Override
+                    protected Object doInBackground(Object... params) {
+                        loadFeedFromDB(0);
+                        return null;
+                    }
 
-            while (!data.isAfterLast()) {
-                Feed feed = Feed.fromCursor(data);
-                imgSize += feed.getImgs().size();
-                mIndexList.add(imgSize);
-                mUrls.addAll(feed.getImgs());
-                data.moveToNext();
+                    @Override
+                    protected void onPostExecute(Object o) {
+                        super.onPostExecute(o);
+//                        int index = mGridView.getFirstPosition();
+//                        View v = mGridView.getChildAt(0);
+//                        int top = (v == null) ? 0 : v.getTop();
+
+                        mAdapter.notifyDataSetChanged();
+
+//                        mGridView.setSelectionToTop();
+                        mAsyncTask = null;
+                    }
+                };
+                TaskUtils.executeAsyncTask(mAsyncTask);
+            } else {
+                loadFeedFromDB(0);
             }
-
-//            for(String url : mUrls) {
-//                CLog.d("img url: " + url);
-//            }
             mAdapter.notifyDataSetChanged();
         }
+        CLog.d("onLoadFinished end");
     }
 
     @Override
@@ -323,4 +360,12 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
                 getArguments().getInt(ARG_SECTION_NUMBER));
 //        ((AppMainActivity) activity).disableFreshMenu();
     }
+
+//    @Override
+//    public void onDetach() {
+//        super.onDetach();
+//        if (mAsyncTask != null) {
+//            mAsyncTask.cancel(true);
+//        }
+//    }
 }

@@ -57,6 +57,7 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
     private String mLatest = null;
     private String mString = "http://23.252.109.110:5000/results/dump/haixiuzu2.txt";
     private String mFileName;
+    private List<Feed> mRestFeeds;
 
     public static FeedsFragment newInstance(int sectionNumber) {
         mSectionNumber = sectionNumber;
@@ -201,9 +202,10 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
     }
 
     private void refreshData() {
-        if (!mSwipeLayout.isRefreshing()) {
-            mSwipeLayout.setRefreshing(true);
+        if (mSwipeLayout.isRefreshing()) {
+            return;
         }
+        mSwipeLayout.setRefreshing(true);
         CLog.d("Refresh:"+getRefreshUrl());
         executeRequest(new GsonRequest(getRefreshUrl(), Feed[].class, responseListener(), errorListener()));
     }
@@ -215,22 +217,34 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
                 TaskUtils.executeAsyncTask(new AsyncTask<Object, Object, Object>() {
                     @Override
                     protected Object doInBackground(Object... params) {
+                        CLog.d("recv data from sever");
                         List<Feed> feeds = Arrays.asList(response);
                         if(feeds != null && feeds.size()>0) {
                             Collections.sort(feeds);
-                            for(Feed feed : feeds) {
-                                CLog.d("after sort " + feed.getDate());
-                            }
+//                            for(Feed feed : feeds) {
+//                                CLog.d("after sort " + feed.getDate());
+//                            }
                             if (mLatest == null) {
-                                mDataHelper.bulkInsert(feeds);
+                                CLog.d("bulkInsert begin");
+                                if (feeds.size() > 30) {
+                                    mRestFeeds = feeds.subList(30, feeds.size());
+                                    mDataHelper.bulkInsert(feeds.subList(0, 30));
+                                } else {
+                                    mDataHelper.bulkInsert(feeds);
+                                }
+                                CLog.d("bulkInsert end");
+
                             } else {
                                 CLog.d("current latest date " + mLatest);
                                 List<Feed> feedFilter = new ArrayList<Feed>();
                                 for(Feed feed : feeds) {
                                     if(feed.getDate().compareTo(mLatest) > 0) feedFilter.add(feed);
                                 }
-                                if(feedFilter.size() > 0)
+                                if(feedFilter.size() > 0) {
+                                    CLog.d("update bulkInsert begin");
                                     mDataHelper.bulkInsert(feedFilter);
+                                    CLog.d("update bulkInsert end");
+                                }
                             }
                             mLatest = feeds.get(0).getDate();
 
@@ -255,6 +269,7 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
                     @Override
                     protected void onPostExecute(Object o) {
                         super.onPostExecute(o);
+                            CLog.d("onPostExecute");
                             mSwipeLayout.setRefreshing(false);
                             mListView.setState(LoadingFooter.State.Idle, 3000);
                     }
@@ -284,7 +299,8 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
 
     @Override
     public void onRefresh() {
-        refreshData();
+//        refreshData();
+        executeRequest(new GsonRequest(getRefreshUrl(), Feed[].class, responseListener(), errorListener()));
     }
 
     @Override
@@ -312,6 +328,24 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
 //                mSinceId = num1;
 //            }
 //            CLog.d(num1+""+num2);
+        }
+
+        if (mRestFeeds != null) {
+            TaskUtils.executeAsyncTask(new AsyncTask<Object, Object, Object>() {
+                @Override
+                protected Object doInBackground(Object... params) {
+                    CLog.d("rest bulkInsert begin");
+                    mDataHelper.bulkInsert(mRestFeeds);
+                    mRestFeeds = null;
+                    CLog.d("rest bulkInsert end");
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Object o) {
+                    super.onPostExecute(o);
+                }
+            });
         }
     }
 
