@@ -28,6 +28,7 @@ import me.scola.picrawler.dao.FeedsDataHelper;
 import me.scola.picrawler.data.GsonRequest;
 import me.scola.picrawler.model.Feed;
 import me.scola.picrawler.util.CLog;
+import me.scola.picrawler.util.CToast;
 import me.scola.picrawler.util.TaskUtils;
 
 import com.origamilabs.library.views.StaggeredGridView;
@@ -65,7 +66,7 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
     private boolean mFirstItemVisible;
 
     private AsyncTask<Object, Object, Object> mAsyncTask;
-
+    private List<Feed> mRestFeeds;
 
     public static FeedsGridFragment newInstance(int sectionNumber) {
         mSectionNumber = sectionNumber;
@@ -116,11 +117,18 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
                 if (position < 0 || position >= mUrls.size()) {
                     return;
                 }
+                if(mIndexList.size() < mCursor.getCount()) {
+                    CToast.showToast(getActivity(), getString(R.string.wait_backgroud));    //这里是必要的, 加载数据库完成之前, 不能随便移动 cursor
+                    return;
+                }
 
                 ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity());
 
                 Intent intent = new Intent(getActivity(), ImageViewActivity.class);
                 Feed feed = getFeed(position);
+                if (feed == null) {
+                    return;
+                }
                 intent.putExtra(ImageViewActivity.IMAGE_NAME, feed.getTitle());
                 intent.putStringArrayListExtra(ImageViewActivity.IMAGE_URL, feed.getImgs());
                 intent.putExtra(ImageViewActivity.IMAGE_ID, feed.getId().toString());
@@ -173,6 +181,21 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
             mSwipeLayout.clearAnimation();
         }
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        CLog.d("mIndexList size: " + mIndexList.size());
+        if(mIndexList != null && mIndexList.size() > 0 && mCursor != null && mIndexList.size() < mCursor.getCount()) {
+            mAdapter.notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
         if (mAsyncTask != null) {
             mAsyncTask.cancel(true);
         }
@@ -188,13 +211,17 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
             if(mIndexList.get(i) > pos) break;
         }
         mCursor.moveToPosition(i);
-        return Feed.fromCursor(mCursor);
+        if (i < mCursor.getCount()) {
+            return Feed.fromCursor(mCursor);
+        }
+        return null;
     }
 
     private void refreshData() {
-        if (!mSwipeLayout.isRefreshing()) {
-            mSwipeLayout.setRefreshing(true);
+        if (mSwipeLayout.isRefreshing()) {
+            return;
         }
+        mSwipeLayout.setRefreshing(true);
 //        CLog.d("Refresh:"+getRefreshUrl());
         executeRequest(new GsonRequest(mString, Feed[].class, responseListener(), errorListener()));
     }
@@ -206,22 +233,45 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
                 TaskUtils.executeAsyncTask(new AsyncTask<Object, Object, Object>() {
                     @Override
                     protected Object doInBackground(Object... params) {
+                        CLog.d("recv data from sever");
                         List<Feed> feeds = Arrays.asList(response);
                         if (feeds != null && feeds.size() > 0) {
                             Collections.sort(feeds);
-                            for (Feed feed : feeds) {
-                                CLog.d("after sort " + feed.getDate());
-                            }
+//                            for (Feed feed : feeds) {
+//                                CLog.d("after sort " + feed.getDate());
+//                            }
                             if (mLatest == null) {
-                                mDataHelper.bulkInsert(feeds);
+                                CLog.d("mLatest == null, it's first time to fetch data from server");
+                                insertFeedImage(feeds);
+                                getActivity().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        mAdapter.notifyDataSetChanged();
+                                    }
+                                });
+
+                                CLog.d("bulkInsert begin");
+                                if (feeds.size() > 30) {
+                                    mRestFeeds = feeds.subList(30, feeds.size());
+                                    mDataHelper.bulkInsert(feeds.subList(0, 30));
+                                } else {
+                                    mDataHelper.bulkInsert(feeds);
+                                }
+                                CLog.d("bulkInsert end");
                             } else {
                                 CLog.d("current latest date " + mLatest);
                                 List<Feed> feedFilter = new ArrayList<Feed>();
                                 for (Feed feed : feeds) {
                                     if (feed.getDate().compareTo(mLatest) > 0) feedFilter.add(feed);
                                 }
-                                if (feedFilter.size() > 0)
+                                if (feedFilter.size() > 0) {
+                                    insertFeedImageIndex(feedFilter);
+                                    CLog.d("update bulkInsert begin");
                                     mDataHelper.bulkInsert(feedFilter);
+                                    CLog.d("update bulkInsert end");
+                                } else {
+                                    CLog.d("no new data found");
+                                }
                             }
                             mLatest = feeds.get(0).getDate();
 
@@ -247,12 +297,38 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
                     protected void onPostExecute(Object o) {
                         super.onPostExecute(o);
                         mSwipeLayout.setRefreshing(false);
+                        mAdapter.notifyDataSetChanged();
 //                        mListView.setState(LoadingFooter.State.Idle, 3000);
-                        getLoaderManager().restartLoader(0, null, FeedsGridFragment.this);
+//                        getLoaderManager().restartLoader(0, null, FeedsGridFragment.this);
                     }
                 });
             }
         };
+    }
+
+    private void insertFeedImage(List<Feed> feeds) {
+        int imgSize = 0;
+        for (Feed feed : feeds) {
+            imgSize += feed.getImgs().size();
+            mIndexList.add(imgSize);
+            mUrls.addAll(feed.getImgs());
+        }
+    }
+
+    private void insertFeedImageIndex(List<Feed> feeds) {
+        int imgSize = 0;
+        ArrayList<Integer> updateIndexList = new ArrayList<Integer>();
+        for (Feed feed : feeds) {
+            imgSize += feed.getImgs().size();
+            updateIndexList.add(imgSize);
+        }
+        for (int i = 0; i < mIndexList.size(); i++) {
+            mIndexList.set(i, mIndexList.get(i) + imgSize);
+        }
+        mIndexList.addAll(0, updateIndexList);
+        for (int i = feeds.size() - 1; i >= 0; i--) {
+            mUrls.addAll(0, feeds.get(i).getImgs());
+        }
     }
 
     protected Response.ErrorListener errorListener() {
@@ -277,7 +353,8 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
 
     @Override
     public void onRefresh() {
-        refreshData();
+//        refreshData();
+        executeRequest(new GsonRequest(mString, Feed[].class, responseListener(), errorListener()));
     }
 
      @Override
@@ -286,9 +363,12 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
     }
 
     private void loadFeedFromDB(int count) {
-        int imgSize = 0;
         if(mCursor == null) {
             return;
+        }
+        int imgSize = 0;
+        if (mIndexList.size() > 0) {
+            imgSize = mIndexList.get(mIndexList.size() - 1);
         }
 
         while (mCursor != null && !mCursor.isAfterLast()) {
@@ -296,13 +376,17 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
             imgSize += feed.getImgs().size();
             mIndexList.add(imgSize);
             mUrls.addAll(feed.getImgs());
-            mCursor.moveToNext();
+
             if (mCursor.getPosition() == 0) {
                 mLatest = feed.getDate();
+                CLog.d("get the latest date from DB, latest = " + mLatest);
             }
+
             if(count > 0 && mCursor.getPosition() == count) {
+                mCursor.moveToNext();
                 break;
             }
+            mCursor.moveToNext();
         }
     }
 
@@ -312,16 +396,18 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
         CLog.d("onLoadFinished begin");
         if (data != null && data.getCount() == 0) {
             refreshData();
-        } else {
-            mUrls.clear();
+        } else if(mUrls.size() == 0) {
+            CLog.d("start to load data from db");
             mIndexList.clear();
             mCursor = data;
             mCursor.moveToFirst();
+            CLog.d("load db count: " + mCursor.getCount());
             if (mCursor.getCount() > 50) {
                 loadFeedFromDB(30);
                 mAsyncTask = new AsyncTask<Object, Object, Object>() {
                     @Override
                     protected Object doInBackground(Object... params) {
+                        CLog.d("load db in Background");
                         loadFeedFromDB(0);
                         return null;
                     }
@@ -344,6 +430,24 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
                 loadFeedFromDB(0);
             }
             mAdapter.notifyDataSetChanged();
+        }
+
+        if (mRestFeeds != null) {
+            TaskUtils.executeAsyncTask(new AsyncTask<Object, Object, Object>() {
+                @Override
+                protected Object doInBackground(Object... params) {
+                    CLog.d("rest bulkInsert begin");
+                    mDataHelper.bulkInsert(mRestFeeds);
+                    mRestFeeds = null;
+                    CLog.d("rest bulkInsert end");
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Object o) {
+                    super.onPostExecute(o);
+                }
+            });
         }
         CLog.d("onLoadFinished end");
     }

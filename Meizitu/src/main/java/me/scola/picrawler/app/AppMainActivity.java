@@ -43,6 +43,7 @@ public class AppMainActivity extends BaseActivity
     private MenuItem mMenu;
 
     private boolean mGrid;
+    private boolean mNewFeedAdd;
 
     private int mPosition;
 
@@ -194,7 +195,7 @@ public class AppMainActivity extends BaseActivity
 
                 FragmentManager fragmentManager = getSupportFragmentManager();
                 mContentFragment = mGrid ? FeedsGridFragment.newInstance(feeds.indexOf(feed_name)) : FeedsFragment.newInstance(feeds.indexOf(feed_name));
-
+                mNewFeedAdd = true;
                 mTitle = feed_name;
                 ActionBar actionBar = getSupportActionBar();
                 actionBar.setTitle(mTitle);
@@ -310,7 +311,8 @@ public class AppMainActivity extends BaseActivity
     @Override
     public void onResume() {
         super.onResume();
-        if (mContentFragment != null) {
+        if (mContentFragment != null && mNewFeedAdd) {          //当在AddFeedActivity press home key, 很长时间之后回来可能会FC
+            mNewFeedAdd = false;
             FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction()
                     .replace(R.id.container, mContentFragment)

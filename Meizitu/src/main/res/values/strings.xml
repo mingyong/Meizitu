@@ -30,4 +30,6 @@
     <string name="haixiuzu">害羞组</string>
     <string name="meizitu">妹子图</string>
 
+    <string name="wait_backgroud">后台正在加载更多图片, 请稍后</string>
+
 </resources>
