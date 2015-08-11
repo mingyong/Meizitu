@@ -20,6 +20,7 @@ import me.scola.picrawler.App;
 import me.scola.picrawler.adapter.StaggeredAdapter;
 import me.scola.picrawler.dao.LikesDataHelper;
 import me.scola.picrawler.model.Feed;
+import me.scola.picrawler.util.CLog;
 
 import com.origamilabs.library.views.StaggeredGridView;
 
@@ -103,11 +104,12 @@ public class LikesGridFragment extends BaseFragment implements LoaderManager.Loa
         return contentView;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        getLoaderManager().restartLoader(0, null, this);
-    }
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//        CLog.d("onResume");
+////        getLoaderManager().restartLoader(0, null, this);
+//    }
 
     public Feed getFeed(int pos) {
         int i;
@@ -131,8 +133,9 @@ public class LikesGridFragment extends BaseFragment implements LoaderManager.Loa
             mAdapter.notifyDataSetChanged();
             return;
         }
-
+        CLog.d("onLoadFinished begin");
         mUrls.clear();
+        mIndexList.clear();
         mCursor = data;
         data.moveToFirst();
         int imgSize = 0;
@@ -143,12 +146,15 @@ public class LikesGridFragment extends BaseFragment implements LoaderManager.Loa
             mUrls.addAll(feed.getImgs());
             data.moveToNext();
         }
-
-//        for(String url : mUrls) {
-//            CLog.d("img url: " + url);
-//        }
-
         mAdapter.notifyDataSetChanged();
+//
+//        mGridView.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                mAdapter.notifyDataSetChanged();
+//            }
+//        }, 2000);
+        CLog.d("onLoadFinished end");
     }
 
     @Override

@@ -117,11 +117,11 @@ public class LikesFragment extends BaseFragment implements  LoaderManager.Loader
         }
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        getLoaderManager().restartLoader(0, null, this);
-    }
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//        getLoaderManager().restartLoader(0, null, this);
+//    }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {

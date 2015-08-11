@@ -117,7 +117,7 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
                 if (position < 0 || position >= mUrls.size()) {
                     return;
                 }
-                if(mIndexList.size() < mCursor.getCount()) {
+                if(mIndexList.size() < mCursor.getCount() || mRestFeeds != null) {
                     CToast.showToast(getActivity(), getString(R.string.wait_backgroud));    //这里是必要的, 加载数据库完成之前, 不能随便移动 cursor
                     return;
                 }
@@ -266,9 +266,14 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
                                 }
                                 if (feedFilter.size() > 0) {
                                     insertFeedImageIndex(feedFilter);
-                                    CLog.d("update bulkInsert begin");
-                                    mDataHelper.bulkInsert(feedFilter);
-                                    CLog.d("update bulkInsert end");
+                                    if (mAsyncTask == null) {
+                                        CLog.d("update bulkInsert begin");
+                                        mDataHelper.bulkInsert(feedFilter);
+                                        CLog.d("update bulkInsert end");
+                                    } else {
+                                        mRestFeeds = feedFilter;
+                                    }
+
                                 } else {
                                     CLog.d("no new data found");
                                 }
@@ -390,6 +395,26 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
         }
     }
 
+    private void insertRestFeed() {
+        if (mRestFeeds != null) {
+            TaskUtils.executeAsyncTask(new AsyncTask<Object, Object, Object>() {
+                @Override
+                protected Object doInBackground(Object... params) {
+                    CLog.d("rest bulkInsert begin");
+                    mDataHelper.bulkInsert(mRestFeeds);
+                    mRestFeeds = null;
+                    CLog.d("rest bulkInsert end");
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(Object o) {
+                    super.onPostExecute(o);
+                }
+            });
+        }
+    }
+
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 //            mAdapter.changeCursor(data);
@@ -409,6 +434,7 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
                     protected Object doInBackground(Object... params) {
                         CLog.d("load db in Background");
                         loadFeedFromDB(0);
+                        insertRestFeed();
                         return null;
                     }
 
@@ -430,25 +456,10 @@ public class FeedsGridFragment extends BaseFragment implements LoaderManager.Loa
                 loadFeedFromDB(0);
             }
             mAdapter.notifyDataSetChanged();
+        } else {
+            mCursor = data;
         }
-
-        if (mRestFeeds != null) {
-            TaskUtils.executeAsyncTask(new AsyncTask<Object, Object, Object>() {
-                @Override
-                protected Object doInBackground(Object... params) {
-                    CLog.d("rest bulkInsert begin");
-                    mDataHelper.bulkInsert(mRestFeeds);
-                    mRestFeeds = null;
-                    CLog.d("rest bulkInsert end");
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Object o) {
-                    super.onPostExecute(o);
-                }
-            });
-        }
+        insertRestFeed();
         CLog.d("onLoadFinished end");
     }
 
