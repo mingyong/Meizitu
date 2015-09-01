@@ -317,7 +317,7 @@ public class StaggeredGridView extends ViewGroup {
         if(attrs!=null){
         	TypedArray a=getContext().obtainStyledAttributes( attrs, R.styleable.StaggeredGridView);
             mColCount = a.getInteger(R.styleable.StaggeredGridView_numColumns, 2);
-            mDrawSelectorOnTop = a.getBoolean(R.styleable.StaggeredGridView_drawSelectorOnTop, false);
+            mDrawSelectorOnTop = a.getBoolean(R.styleable.StaggeredGridView_drawSelectorOnTop2, false);
         }else{
         	mColCount = 2;
         	mDrawSelectorOnTop = false;

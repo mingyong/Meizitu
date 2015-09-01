@@ -101,7 +101,7 @@ public class AppMainActivity extends BaseActivity
 //        }
 
         if (position == mFeeds.size()) {
-            mContentFragment = mGrid ? LikesGridFragment.newInstance(position) : LikesFragment.newInstance(position);
+            mContentFragment = mGrid ? LikesGridCursorFragment.newInstance(position) : LikesGridCursorFragment.newInstance(position);
 //            mMenu.setVisible(false);
         } else {
             mContentFragment = mGrid ? FeedsGridFragment.newInstance(position) : FeedsFragment.newInstance(position);
