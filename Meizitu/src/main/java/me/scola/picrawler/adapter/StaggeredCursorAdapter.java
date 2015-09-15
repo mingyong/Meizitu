@@ -2,10 +2,13 @@ package me.scola.picrawler.adapter;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v4.widget.Space;
 import android.view.LayoutInflater;
@@ -17,14 +20,17 @@ import android.widget.ListView;
 import android.widget.TextView;
 import com.android.volley.toolbox.ImageLoader;
 import com.etsy.android.grid.StaggeredGridView;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import me.scola.picrawler.app.ImageViewActivity;
 import me.scola.picrawler.app.R;
 import me.scola.picrawler.data.ImageCacheManager;
 import me.scola.picrawler.model.Feed;
 import me.scola.picrawler.util.CLog;
+import me.scola.picrawler.util.CToast;
 import me.scola.picrawler.view.ScaleImageView;
 
 
@@ -66,8 +72,8 @@ public class StaggeredCursorAdapter extends CursorAdapter {
     }
 
     @Override
-    public void bindView(View view, Context context, Cursor cursor) {
-        Holder holder = (Holder) view.getTag();
+    public void bindView(View view, final Context context, Cursor cursor) {
+        final Holder holder = (Holder) view.getTag();
         if (holder.imageRequestList != null && holder.imageRequestList.size() > 0) {
             for (ImageLoader.ImageContainer request : holder.imageRequestList) {
                 request.cancelRequest();
@@ -78,7 +84,7 @@ public class StaggeredCursorAdapter extends CursorAdapter {
 //        view.setEnabled(!mListView.isItemChecked(cursor.getPosition()
 //                + mListView.getHeaderViewsCount()));
 
-        Feed feed = Feed.fromCursor(cursor);
+        final Feed feed = Feed.fromCursor(cursor);
 //        List<String> im = holder.imgList;
         if(feed.getImgs().isEmpty()) {
             return;
@@ -101,6 +107,24 @@ public class StaggeredCursorAdapter extends CursorAdapter {
             ScaleImageView imageView = (ScaleImageView) v.findViewById(R.id.imageView1);
             ImageLoader.ImageContainer imageRequest = ImageCacheManager.loadImage(img, ImageCacheManager
                 .getImageListener(imageView, mDefaultImageDrawable, mDefaultImageDrawable));
+
+            imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation((Activity)context);
+
+                    Intent intent = new Intent(context, ImageViewActivity.class);
+                    intent.putExtra(ImageViewActivity.IMAGE_NAME, feed.getTitle());
+                    intent.putStringArrayListExtra(ImageViewActivity.IMAGE_URL, feed.getImgs());
+                    intent.putExtra(ImageViewActivity.IMAGE_ID, feed.getId().toString());
+                    intent.putExtra(ImageViewActivity.IMAGE_AUTHOR, new Gson().toJson(feed.getAuthor()));
+                    intent.putExtra(ImageViewActivity.IMAGE_DATE, feed.getDate());
+                    intent.putExtra(ImageViewActivity.IMAGE_ORIGINURL, feed.getUrl());
+                    intent.putExtra(ImageViewActivity.IMAGE_INDEX, holder.imageGroup.indexOfChild(v) / 2);
+                    ActivityCompat.startActivity((Activity)context, intent, options.toBundle());
+                }
+            });
+
             holder.imageRequestList.add(imageRequest);
             holder.imageGroup.addView(imageView);
             if (feed.getImgs().indexOf(img) != feed.getImgs().size() - 1) {
