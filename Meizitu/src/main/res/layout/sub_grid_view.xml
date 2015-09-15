@@ -3,20 +3,13 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" >
 
-    <LinearLayout
-        xmlns:tools="http://schemas.android.com/tools"
-        xmlns:staggered="http://schemas.android.com/apk/res-auto"
+    <com.etsy.android.grid.StaggeredGridView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/sub_grid_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/mainLayout">
-
-        <com.origamilabs.library.views.StaggeredGridView
-            android:id="@+id/subGridView"
-            staggered:numColumns="1"
-            staggered:drawSelectorOnTop="true"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-    </LinearLayout>
+        app:item_margin="5dp"
+        app:column_count="@integer/sub_column_count" />
 
 </FrameLayout>

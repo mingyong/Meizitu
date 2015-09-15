@@ -7,14 +7,19 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v4.widget.CursorAdapter;
+import android.support.v4.widget.Space;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import com.android.volley.toolbox.ImageLoader;
-import com.origamilabs.library.views.StaggeredGridView;
+import com.etsy.android.grid.StaggeredGridView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import me.scola.picrawler.app.R;
 import me.scola.picrawler.data.ImageCacheManager;
@@ -51,9 +56,28 @@ public class StaggeredCursorAdapter extends CursorAdapter {
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
         CLog.d("newView");
-        View view =  mLayoutInflater.inflate(R.layout.row_staggered_demo, null);
+        View view = mLayoutInflater.inflate(R.layout.imagegroup, null);
         Holder holder = new Holder();
-        holder.imageView = (ScaleImageView) view.findViewById(R.id.imageView1);
+//        holder.imageView = (ScaleImageView) view.findViewById(R.id.imageView1);
+        holder.imageGroup =  (LinearLayout) view.findViewById(R.id.linear);
+
+        Feed feed = Feed.fromCursor(cursor);
+        if(!feed.getImgs().isEmpty()) {
+            for (String img : feed.getImgs()) {
+                View  v =  mLayoutInflater.inflate(R.layout.scaleimgeview, null);
+                ScaleImageView imageView = (ScaleImageView) v.findViewById(R.id.imageView1);
+//                ImageLoader.ImageContainer imageRequest = ImageCacheManager.loadImage(img, ImageCacheManager
+//                        .getImageListener(imageView, mDefaultImageDrawable, mDefaultImageDrawable));
+//                holder.imageRequestList.add(imageRequest);
+                holder.imageGroup.addView(imageView);
+                if (feed.getImgs().indexOf(img) != feed.getImgs().size() - 1) {
+                    Space space = new Space(context);
+                    holder.imageGroup.addView(space);
+                    space.getLayoutParams().height = context.getResources().getDimensionPixelSize(R.dimen.margin);
+                }
+            }
+        }
+        holder.imgList = feed.getImgs();
         view.setTag(holder);
         return view;
     }
@@ -61,31 +85,52 @@ public class StaggeredCursorAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         Holder holder = (Holder) view.getTag();
-//        if (holder.imageRequest != null) {
-//            holder.imageRequest.cancelRequest();
-//        }
+        if (holder.imageRequestList != null && holder.imageRequestList.size() > 0) {
+            for (ImageLoader.ImageContainer request : holder.imageRequestList) {
+                request.cancelRequest();
+            }
+            holder.imageRequestList.clear();
+        }
 
 //        view.setEnabled(!mListView.isItemChecked(cursor.getPosition()
 //                + mListView.getHeaderViewsCount()));
 
-        Feed feed = Feed.fromCursor(cursor);
-//        if(!feed.getImgs().isEmpty()) {
-//            holder.imageRequest = ImageCacheManager.loadImage(feed.getImgs().get(0), ImageCacheManager
-//                    .getImageListener(holder.image, mDefaultImageDrawable, mDefaultImageDrawable));
-//        }
-        CLog.d("bindView " + feed.getImgs());
-        holder.imageRequest = ImageCacheManager.loadImage(feed.getImgs().get(0), ImageCacheManager
-                .getImageListener(holder.imageView, mDefaultImageDrawable, mDefaultImageDrawable));
-//        StaggeredAdapter subGridAdapter = new StaggeredAdapter(context, R.id.imageView1, feed.getImgs());
-//        holder.gridview.setAdapter(subGridAdapter);
-//        subGridAdapter.notifyDataSetChanged();
+//        Feed feed = Feed.fromCursor(cursor);
+//        List<String> im = holder.imgList;
+        if(holder.imgList.isEmpty()) {
+            return;
+        }
 
-//        holder.caption.setText(feed.getTitle());
+        CLog.d("bindView " + holder.imgList);
+
+        for (int i = 0; i < holder.imageGroup.getChildCount(); i++) {
+            CLog.d("feed.getImgs().size " + holder.imgList.size() + " holder.imageGroup.getChildCount " + holder.imageGroup.getChildCount());
+            if (i % 2 == 1) continue;
+            if (i / 2 >= holder.imgList.size()) break;
+            ScaleImageView imageView = (ScaleImageView) holder.imageGroup.getChildAt(i);
+            ImageLoader.ImageContainer imageRequest = ImageCacheManager.loadImage(holder.imgList.get(i / 2), ImageCacheManager
+                    .getImageListener(imageView, mDefaultImageDrawable, mDefaultImageDrawable));
+            holder.imageRequestList.add(imageRequest);
+        }
+
+//        for (String img : feed.getImgs()) {
+//            View  v =  mLayoutInflater.inflate(R.layout.scaleimgeview, null);
+//            ScaleImageView imageView = (ScaleImageView) v.findViewById(R.id.imageView1);
+//            ImageLoader.ImageContainer imageRequest = ImageCacheManager.loadImage(img, ImageCacheManager
+//                .getImageListener(imageView, mDefaultImageDrawable, mDefaultImageDrawable));
+//            holder.imageRequestList.add(imageRequest);
+//            holder.imageGroup.addView(imageView);
+//            if (feed.getImgs().indexOf(img) != feed.getImgs().size() - 1) {
+//                Space space = new Space(context);
+//                holder.imageGroup.addView(space);
+//                space.getLayoutParams().height = context.getResources().getDimensionPixelSize(R.dimen.margin);
+//            }
+//        }
     }
 
-    static class Holder {
-        //        StaggeredGridView gridview;
-        ScaleImageView imageView;
-        public ImageLoader.ImageContainer imageRequest;
+    class Holder {
+        LinearLayout imageGroup;
+        List<String> imgList;
+        public List<ImageLoader.ImageContainer> imageRequestList = new ArrayList<ImageLoader.ImageContainer>();
     }
 }
