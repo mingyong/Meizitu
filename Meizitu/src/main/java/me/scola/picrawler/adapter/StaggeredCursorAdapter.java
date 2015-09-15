@@ -61,23 +61,6 @@ public class StaggeredCursorAdapter extends CursorAdapter {
 //        holder.imageView = (ScaleImageView) view.findViewById(R.id.imageView1);
         holder.imageGroup =  (LinearLayout) view.findViewById(R.id.linear);
 
-        Feed feed = Feed.fromCursor(cursor);
-        if(!feed.getImgs().isEmpty()) {
-            for (String img : feed.getImgs()) {
-                View  v =  mLayoutInflater.inflate(R.layout.scaleimgeview, null);
-                ScaleImageView imageView = (ScaleImageView) v.findViewById(R.id.imageView1);
-//                ImageLoader.ImageContainer imageRequest = ImageCacheManager.loadImage(img, ImageCacheManager
-//                        .getImageListener(imageView, mDefaultImageDrawable, mDefaultImageDrawable));
-//                holder.imageRequestList.add(imageRequest);
-                holder.imageGroup.addView(imageView);
-                if (feed.getImgs().indexOf(img) != feed.getImgs().size() - 1) {
-                    Space space = new Space(context);
-                    holder.imageGroup.addView(space);
-                    space.getLayoutParams().height = context.getResources().getDimensionPixelSize(R.dimen.margin);
-                }
-            }
-        }
-        holder.imgList = feed.getImgs();
         view.setTag(holder);
         return view;
     }
@@ -95,42 +78,42 @@ public class StaggeredCursorAdapter extends CursorAdapter {
 //        view.setEnabled(!mListView.isItemChecked(cursor.getPosition()
 //                + mListView.getHeaderViewsCount()));
 
-//        Feed feed = Feed.fromCursor(cursor);
+        Feed feed = Feed.fromCursor(cursor);
 //        List<String> im = holder.imgList;
-        if(holder.imgList.isEmpty()) {
+        if(feed.getImgs().isEmpty()) {
             return;
         }
 
-        CLog.d("bindView " + holder.imgList);
+        CLog.d("bindView " + feed.getImgs());
 
-        for (int i = 0; i < holder.imageGroup.getChildCount(); i++) {
-            CLog.d("feed.getImgs().size " + holder.imgList.size() + " holder.imageGroup.getChildCount " + holder.imageGroup.getChildCount());
-            if (i % 2 == 1) continue;
-            if (i / 2 >= holder.imgList.size()) break;
-            ScaleImageView imageView = (ScaleImageView) holder.imageGroup.getChildAt(i);
-            ImageLoader.ImageContainer imageRequest = ImageCacheManager.loadImage(holder.imgList.get(i / 2), ImageCacheManager
-                    .getImageListener(imageView, mDefaultImageDrawable, mDefaultImageDrawable));
-            holder.imageRequestList.add(imageRequest);
-        }
-
-//        for (String img : feed.getImgs()) {
-//            View  v =  mLayoutInflater.inflate(R.layout.scaleimgeview, null);
-//            ScaleImageView imageView = (ScaleImageView) v.findViewById(R.id.imageView1);
-//            ImageLoader.ImageContainer imageRequest = ImageCacheManager.loadImage(img, ImageCacheManager
-//                .getImageListener(imageView, mDefaultImageDrawable, mDefaultImageDrawable));
+//        for (int i = 0; i < holder.imageGroup.getChildCount(); i++) {
+//            CLog.d("feed.getImgs().size " + holder.imgList.size() + " holder.imageGroup.getChildCount " + holder.imageGroup.getChildCount());
+//            if (i % 2 == 1) continue;
+//            if (i / 2 >= holder.imgList.size()) break;
+//            ScaleImageView imageView = (ScaleImageView) holder.imageGroup.getChildAt(i);
+//            ImageLoader.ImageContainer imageRequest = ImageCacheManager.loadImage(holder.imgList.get(i / 2), ImageCacheManager
+//                    .getImageListener(imageView, mDefaultImageDrawable, mDefaultImageDrawable));
 //            holder.imageRequestList.add(imageRequest);
-//            holder.imageGroup.addView(imageView);
-//            if (feed.getImgs().indexOf(img) != feed.getImgs().size() - 1) {
-//                Space space = new Space(context);
-//                holder.imageGroup.addView(space);
-//                space.getLayoutParams().height = context.getResources().getDimensionPixelSize(R.dimen.margin);
-//            }
 //        }
+        holder.imageGroup.removeAllViews();
+        for (String img : feed.getImgs()) {
+            View  v =  mLayoutInflater.inflate(R.layout.scaleimgeview, null);
+            ScaleImageView imageView = (ScaleImageView) v.findViewById(R.id.imageView1);
+            ImageLoader.ImageContainer imageRequest = ImageCacheManager.loadImage(img, ImageCacheManager
+                .getImageListener(imageView, mDefaultImageDrawable, mDefaultImageDrawable));
+            holder.imageRequestList.add(imageRequest);
+            holder.imageGroup.addView(imageView);
+            if (feed.getImgs().indexOf(img) != feed.getImgs().size() - 1) {
+                Space space = new Space(context);
+                holder.imageGroup.addView(space);
+                space.getLayoutParams().height = context.getResources().getDimensionPixelSize(R.dimen.margin);
+            }
+        }
     }
 
     class Holder {
         LinearLayout imageGroup;
-        List<String> imgList;
+//        List<String> imgList;
         public List<ImageLoader.ImageContainer> imageRequestList = new ArrayList<ImageLoader.ImageContainer>();
     }
 }
