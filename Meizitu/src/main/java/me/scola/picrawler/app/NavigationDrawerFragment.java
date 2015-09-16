@@ -109,7 +109,7 @@ public class NavigationDrawerFragment extends Fragment {
         }
         if (json_feeds == null) {
             AppMainActivity.mFeeds.put(getString(R.string.haixiuzu), "http://23.252.109.110/haixiuzu.txt");
-//            AppMainActivity.mFeeds.put(getString(R.string.meizitu), "http://23.252.109.110:5000/results/dump/meizitu.txt");
+            AppMainActivity.mFeeds.put(getString(R.string.meizitu), "http://23.252.109.110/meizitu.txt");
         } else {
             AppMainActivity.mFeeds = new Gson().fromJson(json_feeds, new TypeToken<Map<String, String>>() {
             }.getType());
