@@ -104,7 +104,7 @@ public class AppMainActivity extends BaseActivity
             mContentFragment = mGrid ? LikesGridCursorFragment.newInstance(position) : LikesGridCursorFragment.newInstance(position);
 //            mMenu.setVisible(false);
         } else {
-            mContentFragment = mGrid ? FeedsGridFragment.newInstance(position) : FeedsFragment.newInstance(position);
+            mContentFragment = mGrid ? LikesGridCursorFragment.newInstance(position) : FeedsFragment.newInstance(position);
         }
 
         fragmentManager.beginTransaction()
@@ -116,8 +116,8 @@ public class AppMainActivity extends BaseActivity
     public void deleteTable() {
         if(mContentFragment == null) return;
 
-        if(mContentFragment instanceof FeedsGridFragment) {
-            ((FeedsGridFragment)mContentFragment).getDataHelper().deleteAll();
+        if(mContentFragment instanceof LikesGridCursorFragment) {
+            ((LikesGridCursorFragment)mContentFragment).getDataHelper().deleteAll();
         } else if(mContentFragment instanceof FeedsFragment){
             ((FeedsFragment)mContentFragment).getDataHelper().deleteAll();
         }
@@ -140,7 +140,10 @@ public class AppMainActivity extends BaseActivity
             mTitle = keys.get(number);
         }
         ActionBar actionBar = getSupportActionBar();
-        actionBar.setTitle(mTitle);
+        if (actionBar != null) {
+            actionBar.setTitle(mTitle);
+        }
+
 
 //        switch (number) {
 //            case 1:
@@ -169,7 +172,7 @@ public class AppMainActivity extends BaseActivity
             // decide what to show in the action bar.
             getMenuInflater().inflate(R.menu.main, menu);
             mMenu = menu.findItem(R.id.action_refresh);
-            if (mContentFragment != null && mContentFragment instanceof LikesGridFragment) {
+            if (mPosition == mFeeds.size()) {
                 mMenu.setVisible(false);
             }
 //
@@ -194,7 +197,7 @@ public class AppMainActivity extends BaseActivity
                 Collections.sort(feeds);
 
                 FragmentManager fragmentManager = getSupportFragmentManager();
-                mContentFragment = mGrid ? FeedsGridFragment.newInstance(feeds.indexOf(feed_name)) : FeedsFragment.newInstance(feeds.indexOf(feed_name));
+                mContentFragment = mGrid ? LikesGridCursorFragment.newInstance(feeds.indexOf(feed_name)) : FeedsFragment.newInstance(feeds.indexOf(feed_name));
                 mNewFeedAdd = true;
                 mTitle = feed_name;
                 ActionBar actionBar = getSupportActionBar();
@@ -234,71 +237,21 @@ public class AppMainActivity extends BaseActivity
             startActivityForResult(i, REQUEST_CODE);
 
 
-//            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//            builder.setTitle(getString(R.string.action_add));
-//            LinearLayout layout = new LinearLayout(this);
-//            layout.setOrientation(LinearLayout.VERTICAL);
-//
-//            final EditText titleBox = new EditText(this);
-//            titleBox.setHint("Title");
-//            layout.addView(titleBox);
-//
-//            final EditText descriptionBox = new EditText(this);
-//            descriptionBox.setHint("URL");
-//            layout.addView(descriptionBox);
-//
-//            builder.setView(layout);
-//
-//            builder.setPositiveButton(getString(android.R.string.ok),
-//                    new DialogInterface.OnClickListener() {
-//                        public void onClick(DialogInterface dialog, int id) {
-//                            // get user input and set it to result
-//                            // edit text
-////                            result.setText(userInput.getText());
-//                            CLog.d(titleBox.getText());
-//                            String title = titleBox.getText().toString().trim();
-//                            if (title != "" && Patterns.WEB_URL.matcher(descriptionBox.getText().toString().trim()).matches()) {
-//                                mFeeds.put(title, descriptionBox.getText().toString().trim());
-//                                mNavigationDrawerFragment.addFeedAndUpdate(title);
-//
-//                                Set<String> keys = AppMainActivity.mFeeds.keySet();
-//                                ArrayList<String> feeds =  new ArrayList<String>(keys);
-//                                Collections.sort(feeds);
-//
-//                                FragmentManager fragmentManager = getSupportFragmentManager();
-//                                mContentFragment = FeedsGridFragment.newInstance(feeds.indexOf(title));
-//
-//
-//                                fragmentManager.beginTransaction()
-//                                        .replace(R.id.container, mContentFragment)
-//                                        .commit();
-//                            }
-////                            Toast.makeText(AppMainActivity.this, "Get URL", Toast.LENGTH_LONG);
-//                        }
-//                    })
-//                    .setNegativeButton(getString(android.R.string.cancel),
-//                            new DialogInterface.OnClickListener() {
-//                                public void onClick(DialogInterface dialog, int id) {
-//                                    dialog.cancel();
-//                                }
-//                            });
-//            builder.create().show();
         } else if(id == R.id.action_switch) {
             mGrid = !mGrid;
             if(mContentFragment == null)
                 return super.onOptionsItemSelected(item);
             FragmentManager fragmentManager = getSupportFragmentManager();
-//            mContentFragment = FeedsGridFragment.newInstance(feeds.indexOf(title));
+//            mContentFragment = LikesGridCursorFragment.newInstance(feeds.indexOf(title));
             boolean grid = mContentFragment.getClass().getSimpleName().contains("Grid");
-            boolean like = mContentFragment.getClass().getSimpleName().contains("Like");
-            if (like == true && grid == false) {
-                mContentFragment = LikesGridFragment.newInstance(mPosition);
-            } else if (like == true && grid == true) {
+            boolean like = (mFeeds.size() == mPosition);
+
+            if (grid == false) {
+                mContentFragment = LikesGridCursorFragment.newInstance(mPosition);
+            } else if (like == true) {
                 mContentFragment = LikesFragment.newInstance(mPosition);
-            } else if (like == false && grid == true) {
+            } else {
                 mContentFragment = FeedsFragment.newInstance(mPosition);
-            } else if (like == false && grid == false) {
-                mContentFragment = FeedsGridFragment.newInstance(mPosition);
             }
 
             fragmentManager.beginTransaction()

@@ -62,6 +62,12 @@ public abstract class BaseDataHelper {
         return getCursorLoader(context, null, null, null, null);
     }
 
+//    public CursorLoader getCursorLoader() {
+//        return null;
+//    }
+
+    public abstract CursorLoader getCursorLoader();
+
     protected final CursorLoader getCursorLoader(Context context, String[] projection,
                                                  String selection, String[] selectionArgs, String sortOrder) {
         return new CursorLoader(context, getContentUri(), projection, selection, selectionArgs,
