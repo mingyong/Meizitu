@@ -29,6 +29,10 @@ UIL (图片加载)
 
 volley  
 
+androidstaggeredgrid
+
+#### 使用的 ICON
+[Launcher icon 来自 http://www.iconarchive.com/](http://www.iconarchive.com/show/kameleon.pics-icons-by-webalys/Images-icon.html)
 
 #### 其他
 

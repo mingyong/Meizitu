@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import me.scola.picrawler.App;
+import me.scola.picrawler.adapter.CardsAnimationAdapter;
 import me.scola.picrawler.adapter.StaggeredCursorAdapter;
 import me.scola.picrawler.dao.BaseDataHelper;
 import me.scola.picrawler.dao.DataProvider;
@@ -111,8 +112,11 @@ public class LikesGridCursorFragment extends BaseFragment implements  LoaderMana
 //        mGridView.setPadding(margin, margin, 0, margin); // have the margin on the sides as well
 
         mAdapter = new StaggeredCursorAdapter(getActivity());
-        mGridView.setAdapter(mAdapter);
-        mAdapter.notifyDataSetChanged();
+        AnimationAdapter animationAdapter = new CardsAnimationAdapter(mAdapter);
+        animationAdapter.setAbsListView(mGridView);
+        mGridView.setAdapter(animationAdapter);
+//        mGridView.setAdapter(mAdapter);
+//        mAdapter.notifyDataSetChanged();
 
 //        mListView.setLoadNextListener(null);
 
