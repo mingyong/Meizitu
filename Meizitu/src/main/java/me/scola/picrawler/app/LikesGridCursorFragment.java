@@ -62,8 +62,7 @@ public class LikesGridCursorFragment extends BaseFragment implements  LoaderMana
     private static int mSectionNumber;
     private String mString;
     private String mLatest;
-    private List<Feed> mRestFeeds;
-
+    private boolean mAsyncTaskInsert;
 
     public static LikesGridCursorFragment newInstance(int sectionNumber) {
         mSectionNumber = sectionNumber;
@@ -130,7 +129,7 @@ public class LikesGridCursorFragment extends BaseFragment implements  LoaderMana
     public void onPause() {
         super.onPause();
 
-        if (mLike && mSwipeLayout != null) {
+        if (!mLike && mSwipeLayout != null) {
             mSwipeLayout.setRefreshing(false);
             mSwipeLayout.destroyDrawingCache();
             mSwipeLayout.clearAnimation();
@@ -186,17 +185,15 @@ public class LikesGridCursorFragment extends BaseFragment implements  LoaderMana
                     @Override
                     protected Object doInBackground(Object... params) {
                         CLog.d("recv data from sever");
+                        mAsyncTaskInsert = true;
                         List<Feed> feeds = Arrays.asList(response);
                         if(feeds != null && feeds.size()>0) {
-                            Collections.sort(feeds);
-//                            for(Feed feed : feeds) {
-//                                CLog.d("after sort " + feed.getDate());
-//                            }
                             if (mLatest == null) {
+                                Collections.sort(feeds);
+                                mLatest = feeds.get(0).getDate();
                                 CLog.d("bulkInsert begin");
-                                if (feeds.size() > 30) {
-                                    mRestFeeds = feeds.subList(30, feeds.size());
-                                    ((FeedsDataHelper)mDataHelper).bulkInsert(feeds.subList(0, 30));
+                                if (feeds.size() > BULK_INSERT_MAX_LENGHT) {
+                                    ((FeedsDataHelper)mDataHelper).bulkInsert(feeds.subList(0, BULK_INSERT_MAX_LENGHT));
                                 } else {
                                     ((FeedsDataHelper)mDataHelper).bulkInsert(feeds);
                                 }
@@ -209,12 +206,14 @@ public class LikesGridCursorFragment extends BaseFragment implements  LoaderMana
                                     if(feed.getDate().compareTo(mLatest) > 0) feedFilter.add(feed);
                                 }
                                 if(feedFilter.size() > 0) {
+                                    Collections.sort(feedFilter);
+                                    mLatest = feedFilter.get(0).getDate();
                                     CLog.d("update bulkInsert begin");
                                     ((FeedsDataHelper)mDataHelper).bulkInsert(feedFilter);
                                     CLog.d("update bulkInsert end");
                                 }
                             }
-                            mLatest = feeds.get(0).getDate();
+
                         }
                         return null;
                     }
@@ -224,6 +223,7 @@ public class LikesGridCursorFragment extends BaseFragment implements  LoaderMana
                         super.onPostExecute(o);
                         CLog.d("onPostExecute");
                         mSwipeLayout.setRefreshing(false);
+                        mAsyncTaskInsert = false;
 //                        mListView.setState(LoadingFooter.State.Idle, 3000);
                     }
                 });
@@ -248,24 +248,6 @@ public class LikesGridCursorFragment extends BaseFragment implements  LoaderMana
                 mLatest = mAdapter.getItem(0).getDate();
             CLog.d("onLoadFinished " + mLatest);
         }
-
-        if (mRestFeeds != null) {
-            TaskUtils.executeAsyncTask(new AsyncTask<Object, Object, Object>() {
-                @Override
-                protected Object doInBackground(Object... params) {
-                    CLog.d("rest bulkInsert begin");
-                    ((FeedsDataHelper)mDataHelper).bulkInsert(mRestFeeds);
-                    mRestFeeds = null;
-                    CLog.d("rest bulkInsert end");
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Object o) {
-                    super.onPostExecute(o);
-                }
-            });
-        }
     }
 
     @Override
@@ -279,5 +261,10 @@ public class LikesGridCursorFragment extends BaseFragment implements  LoaderMana
         ((AppMainActivity) activity).onSectionAttached(
                 getArguments().getInt(ARG_SECTION_NUMBER));
 //        ((AppMainActivity) activity).disableFreshMenu();
+    }
+
+    @Override
+    protected boolean isInserting() {
+        return mAsyncTaskInsert;
     }
 }

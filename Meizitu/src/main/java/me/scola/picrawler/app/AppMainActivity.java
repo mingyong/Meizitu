@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Set;
 
 import me.scola.picrawler.util.CLog;
+import me.scola.picrawler.util.CToast;
 import me.scola.picrawler.util.DeviceUtil;
 
 
@@ -45,7 +46,7 @@ public class AppMainActivity extends BaseActivity
     private boolean mGrid;
     private boolean mNewFeedAdd;
 
-    private int mPosition;
+    private int mPosition = -1;
 
     public static Map<String, String> mFeeds = new HashMap<String, String>();
 
@@ -93,12 +94,14 @@ public class AppMainActivity extends BaseActivity
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
+        if (mPosition == position) return;
+        if (mContentFragment != null && mContentFragment.isInserting()) {
+            CToast.showToast(this, R.string.wait_backgroud);
+            return;
+        }
         mPosition = position;
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
-//        if (position == 0) {
-//            mContentFragment = FeedsFragment.newInstance(position + 1);
-//        }
 
         if (position == mFeeds.size()) {
             mContentFragment = mGrid ? LikesGridCursorFragment.newInstance(position) : LikesGridCursorFragment.newInstance(position);

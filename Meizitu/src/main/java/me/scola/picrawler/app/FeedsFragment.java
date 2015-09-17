@@ -57,7 +57,7 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
     private String mLatest = null;
     private String mString = "http://23.252.109.110:5000/results/dump/haixiuzu2.txt";
     private String mFileName;
-    private List<Feed> mRestFeeds;
+    private boolean mAsyncTaskInsert;
 
     public static FeedsFragment newInstance(int sectionNumber) {
         mSectionNumber = sectionNumber;
@@ -218,17 +218,15 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
                     @Override
                     protected Object doInBackground(Object... params) {
                         CLog.d("recv data from sever");
+                        mAsyncTaskInsert = true;
                         List<Feed> feeds = Arrays.asList(response);
                         if(feeds != null && feeds.size()>0) {
-                            Collections.sort(feeds);
-//                            for(Feed feed : feeds) {
-//                                CLog.d("after sort " + feed.getDate());
-//                            }
                             if (mLatest == null) {
+                                Collections.sort(feeds);
+                                mLatest = feeds.get(0).getDate();
                                 CLog.d("bulkInsert begin");
-                                if (feeds.size() > 30) {
-                                    mRestFeeds = feeds.subList(30, feeds.size());
-                                    mDataHelper.bulkInsert(feeds.subList(0, 30));
+                                if (feeds.size() > BULK_INSERT_MAX_LENGHT) {
+                                    mDataHelper.bulkInsert(feeds.subList(0, BULK_INSERT_MAX_LENGHT));
                                 } else {
                                     mDataHelper.bulkInsert(feeds);
                                 }
@@ -241,27 +239,14 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
                                     if(feed.getDate().compareTo(mLatest) > 0) feedFilter.add(feed);
                                 }
                                 if(feedFilter.size() > 0) {
+                                    Collections.sort(feedFilter);
+                                    mLatest = feedFilter.get(0).getDate();
                                     CLog.d("update bulkInsert begin");
                                     mDataHelper.bulkInsert(feedFilter);
                                     CLog.d("update bulkInsert end");
                                 }
                             }
-                            mLatest = feeds.get(0).getDate();
 
-//                            int num1 = feeds.get(0).getId();
-//                            int num2 = feeds.get(feeds.size()-1).getId();
-//                            if(num1>mMaxId) {
-//                                mMaxId = num1;
-//                            }
-//                            if(mSinceId == 0|| num1<mSinceId) {
-//                                mSinceId = num1;
-//                            }
-//                            if(num2>mMaxId) {
-//                                mMaxId = num2;
-//                            }
-//                            if(mSinceId == 0|| num2<mSinceId) {
-//                                mSinceId = num2;
-//                            }
                         }
                         return null;
                     }
@@ -269,9 +254,10 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
                     @Override
                     protected void onPostExecute(Object o) {
                         super.onPostExecute(o);
-                            CLog.d("onPostExecute");
-                            mSwipeLayout.setRefreshing(false);
-                            mListView.setState(LoadingFooter.State.Idle, 3000);
+                        CLog.d("onPostExecute");
+                        mSwipeLayout.setRefreshing(false);
+                        mListView.setState(LoadingFooter.State.Idle, 3000);
+                        mAsyncTaskInsert = false;
                     }
                 });
             }
@@ -318,34 +304,6 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
             if(mLatest == null)
                 mLatest = mAdapter.getItem(0).getDate();
             CLog.d("onLoadFinished " + mLatest);
-//            int num1 = mAdapter.getItem(mAdapter.getCount() -1 ).getId();
-//            int num2 = mAdapter.getItem(0).getId();
-//            if(num1 > num2) {
-//                mMaxId = num1;
-//                mSinceId = num2;
-//            } else {
-//                mMaxId = num2;
-//                mSinceId = num1;
-//            }
-//            CLog.d(num1+""+num2);
-        }
-
-        if (mRestFeeds != null) {
-            TaskUtils.executeAsyncTask(new AsyncTask<Object, Object, Object>() {
-                @Override
-                protected Object doInBackground(Object... params) {
-                    CLog.d("rest bulkInsert begin");
-                    mDataHelper.bulkInsert(mRestFeeds);
-                    mRestFeeds = null;
-                    CLog.d("rest bulkInsert end");
-                    return null;
-                }
-
-                @Override
-                protected void onPostExecute(Object o) {
-                    super.onPostExecute(o);
-                }
-            });
         }
     }
 
@@ -362,6 +320,10 @@ public class FeedsFragment extends BaseFragment implements  LoaderManager.Loader
                 getArguments().getInt(ARG_SECTION_NUMBER));
     }
 
+    @Override
+    protected boolean isInserting() {
+        return mAsyncTaskInsert;
+    }
 //    @Override
 //    public void onDetach() {
 //        super.onDetach();

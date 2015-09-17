@@ -14,6 +14,7 @@ import me.scola.picrawler.data.RequestManager;
  * Created by Sam on 14-3-25.
  */
 public class BaseFragment extends Fragment {
+    protected final static int BULK_INSERT_MAX_LENGHT = 100;
 
     @Override
     public void onStop() {
@@ -34,5 +35,9 @@ public class BaseFragment extends Fragment {
                 Toast.makeText(App.getContext(), error.getMessage(), Toast.LENGTH_LONG).show();
             }
         };
+    }
+
+    protected boolean isInserting() {
+        return false;
     }
 }
