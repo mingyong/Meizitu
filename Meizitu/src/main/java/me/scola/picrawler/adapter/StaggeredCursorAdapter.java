@@ -135,7 +135,7 @@ public class StaggeredCursorAdapter extends CursorAdapter {
         }
     }
 
-    class Holder {
+    static class Holder {
         LinearLayout imageGroup;
 //        List<String> imgList;
         public List<ImageLoader.ImageContainer> imageRequestList = new ArrayList<ImageLoader.ImageContainer>();
