@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.FragmentManager;
 import android.os.Bundle;
@@ -36,6 +37,9 @@ public class AppMainActivity extends BaseActivity
     public static final String PREF_FEED_NAME = "allFeeds";
     public static final String PREF_GRID = "grid";
     private static final int REQUEST_CODE = 10;
+    private static final String KEY_POSITION = "position";
+    private static final String KEY_GRID = "grid";
+    private static final String KEY_LIKE = "like";
 
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
@@ -72,6 +76,20 @@ public class AppMainActivity extends BaseActivity
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
 
+        if (savedInstanceState != null) {
+            mPosition = savedInstanceState.getInt(KEY_POSITION);
+            mGrid = savedInstanceState.getBoolean(KEY_GRID);
+            if (savedInstanceState.getBoolean(KEY_LIKE)) {
+                mContentFragment = mGrid ? LikesGridCursorFragment.newInstance(mPosition) : LikesFragment.newInstance(mPosition);
+            } else {
+                mContentFragment = mGrid ? LikesGridCursorFragment.newInstance(mPosition) : FeedsFragment.newInstance(mPosition);
+            }
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, mContentFragment)
+                    .commit();
+        }
+
         MobclickAgent.updateOnlineConfig(this);
         UmengUpdateAgent.update(this);
         CLog.i(DeviceUtil.getDeviceInfo(this));
@@ -104,8 +122,7 @@ public class AppMainActivity extends BaseActivity
         FragmentManager fragmentManager = getSupportFragmentManager();
 
         if (position == mFeeds.size()) {
-            mContentFragment = mGrid ? LikesGridCursorFragment.newInstance(position) : LikesGridCursorFragment.newInstance(position);
-//            mMenu.setVisible(false);
+            mContentFragment = mGrid ? LikesGridCursorFragment.newInstance(position) : LikesFragment.newInstance(position);
         } else {
             mContentFragment = mGrid ? LikesGridCursorFragment.newInstance(position) : FeedsFragment.newInstance(position);
         }
@@ -222,7 +239,7 @@ public class AppMainActivity extends BaseActivity
         int id = item.getItemId();
         if (id == R.id.action_settings) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("关于").setMessage("本程序图片来自网上，" +
+            builder.setTitle(getString(R.string.app_name) + " " + getMyVersion(this)).setMessage("本程序图片来自网上，" +
                     "程序用于个人娱乐，严禁用于商业目的。所有图片等资源的版权归原作者所有。");
             builder.create().show();
             return true;
@@ -286,4 +303,25 @@ public class AppMainActivity extends BaseActivity
         MobclickAgent.onPause(this);
     }
 
+    public static String getMyVersion(Context context) {
+        try {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            if (null == packageInfo.versionName) {
+                return "Unknown";
+            } else {
+                return packageInfo.versionName;
+            }
+        } catch (Exception e) {
+            CLog.e("failed to get package info" + e);
+            return "Unknown";
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putInt(KEY_POSITION, mPosition);
+        savedInstanceState.putBoolean(KEY_GRID, mGrid);
+        savedInstanceState.putBoolean(KEY_LIKE, mPosition == mFeeds.size());
+    }
 }
